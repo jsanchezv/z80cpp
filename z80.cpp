@@ -13,24 +13,25 @@ using namespace std;
 
 class Klock{
 public:
-    long getTstates() {
+    unsigned long getTstates() {
         return tstates;
     }
 
-    void setTstates(long states) {}
+    void setTstates(unsigned long nstates) { tstates = nstates; }
 
-    void addTstates(long states) {}
+    void addTstates(unsigned long nstates) { tstates += nstates; }
 
     void reset() {
+	cout << "Klock.reset() called!" << endl;
         frames = timeout = tstates = 0;
     }
 
-    void setTimeout(long ntstates) {} 
+    void setTimeout(unsigned long ntstates) {} 
 
 private:
-    long tstates;
-    long frames;
-    long timeout;
+    unsigned long tstates;
+    unsigned long frames;
+    unsigned long timeout;
 };
 
 class Z80; // forward declaration.
@@ -1074,7 +1075,7 @@ public:
 
     // Suma con acarreo de 8 bits
     void adc(unsigned int oper8) {
-        unsigned int res = regA + oper8;
+        int res = regA + oper8;
 
         if (carryFlag) {
             res++;
@@ -1115,10 +1116,10 @@ public:
 
     // Suma con acarreo de 16 bits
     void adc16(unsigned int reg16) {
-        unsigned int regHL = getRegHL();
+        int regHL = getRegHL();
         memptr = regHL + 1;
 
-        unsigned int res = regHL + reg16;
+        int res = regHL + reg16;
         if (carryFlag) {
             res++;
         }
@@ -1145,7 +1146,7 @@ public:
 
     // Resta con acarreo de 8 bits
     void sbc(unsigned int oper8) {
-        unsigned int res = regA - oper8;
+        int res = regA - oper8;
 
         if (carryFlag) {
             res--;
@@ -1169,10 +1170,10 @@ public:
 
     // Resta con acarreo de 16 bits
     void sbc16(unsigned int reg16) {
-        unsigned int regHL = getRegHL();
+        int regHL = getRegHL();
         memptr = regHL + 1;
 
-        unsigned int res = regHL - reg16;
+        int res = regHL - reg16;
         if (carryFlag) {
             res--;
         }
@@ -1225,7 +1226,7 @@ public:
     // Los flags SIGN y ZERO se calculan a partir del resultado
     // Los flags 3 y 5 se copian desde el operando (sigh!)
     void cp(unsigned int oper8) {
-        unsigned int res = regA - (oper8 & 0xff);
+        int res = regA - (oper8 & 0xff);
 
         carryFlag = res < 0;
         res &= 0xff;
@@ -1534,7 +1535,7 @@ public:
     void bit(unsigned int mask, unsigned int reg) {
         bool zeroFlag = (mask & reg) == 0;
 
-        sz5h3pnFlags = sz53n_addTable[reg] & ~FLAG_SZP_MASK | HALFCARRY_MASK;
+        sz5h3pnFlags = (sz53n_addTable[reg] & ~FLAG_SZP_MASK) | HALFCARRY_MASK;
 
         if (zeroFlag) {
             sz5h3pnFlags |= (PARITY_MASK | ZERO_MASK);
@@ -1645,7 +1646,7 @@ public:
 //         cout << "Checking for breapoint" << endl;
         if (breakpointAt[regPC]) {
             // d6
-            cout << "Breakpoint at" << regPC << endl;
+            //cout << "Breakpoint at" << regPC << endl;
             Z80opsImpl.breakpoint();
         }
 
@@ -6368,6 +6369,7 @@ public:
     unsigned int Z80operations::fetchOpcode(unsigned int address) {
         // 3 clocks to fetch opcode from RAM and 1 execution clock
         klock.addTstates(4);
+	//cout << "fech opcode from address " << address << endl;
         return z80Ram[address] & 0xff;
     }
 
@@ -6412,21 +6414,21 @@ public:
         switch (z80->getRegC()) {
             case 0: // BDOS 0 System Reset
             {
-                cout << "Z80 reset after klock.getTstates() t-states" << endl;
+                cout << "Z80 reset after " << klock.getTstates() << " t-states" << endl;
                 finish = true;
                 break;
             }
             case 2: // BDOS 2 console char output
             {
-                cout << (char) z80->getRegE() << endl;
+                cout << (char) z80->getRegE();
                 break;
             }
             case 9: // BDOS 9 console string output (string terminated by "$")
             {
-                cout << "BDOS 9" << endl;
+                // cout << "BDOS 9" << endl;
                 unsigned int strAddr = z80->getRegDE();
                 while (z80Ram[strAddr] != '$') {
-                    cout << (char) z80Ram[strAddr++] << endl;
+                    cout << (char) z80Ram[strAddr++];
                 }
                 break;
             }
@@ -6451,7 +6453,7 @@ public:
         size = f->tellg();
         cout << "Test size: " << size << endl;
         f->seekg(0, ios::beg);
-        f->read(z80Ram, size);
+        f->read(&z80Ram[0x100], size);
         f->close();
 
         z80->reset();

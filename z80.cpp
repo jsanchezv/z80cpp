@@ -2,7 +2,7 @@
 //... https://github.com/jsanchezv/Z80Core
 //... commit c4f267e3564fa89bd88fd2d1d322f4d6b0069dbd
 //... GPL 3
-//... v0.0.4 (24/01/2017)
+//... v0.0.5 (24/01/2017)
 //    quick & dirty conversion by dddddd (AKA deesix)
 
 //... compile with $ g++ -m32 -std=c++14
@@ -54,15 +54,15 @@ private:
 public:
     Z80* z80;
     Z80operations();
-    unsigned int fetchOpcode(unsigned int address);
+    uint8_t fetchOpcode(uint16_t address);
 
-    unsigned int peek8(unsigned int address);
-    void poke8(unsigned int address, unsigned int value);
-    unsigned int peek16(unsigned int address);
-    void poke16(unsigned int address, unsigned int word);
+    uint8_t peek8(uint16_t address);
+    void poke8(uint16_t address, uint8_t value);
+    uint16_t peek16(uint16_t address);
+    void poke16(uint16_t address, uint16_t word);
 
-    unsigned int inPort(unsigned int port);
-    void outPort(unsigned int port, unsigned int value);
+    uint8_t inPort(uint16_t port);
+    void outPort(uint16_t port, uint8_t value);
 
     void contendedStates(uint16_t address, uint32_t tstates);
 
@@ -83,7 +83,7 @@ public:
 private:
     Klock klock;
     // Código de instrucción a ejecutar
-    unsigned int opCode;
+    uint8_t opCode;
     // Subsistema de notificaciones
     bool execDone;
     // Posiciones de los flags
@@ -561,7 +561,7 @@ public:
 
     // Acceso al registro oculto MEMPTR
 
-    unsigned int getMemPtr() {
+    uint16_t getMemPtr() {
         return memptr;
     }
 
@@ -995,7 +995,7 @@ public:
     void rrd() {
         unsigned int aux = (regA & 0x0f) << 4;
         memptr = getRegHL();
-        unsigned int memHL = Z80opsImpl.peek8(memptr);
+        uint16_t memHL = Z80opsImpl.peek8(memptr);
         regA = (regA & 0xf0) | (memHL & 0x0f);
         Z80opsImpl.contendedStates(memptr, 4);
         Z80opsImpl.poke8(memptr, (memHL >> 4) | aux);
@@ -1014,7 +1014,7 @@ public:
     void rld() {
         unsigned int aux = regA & 0x0f;
         memptr = getRegHL();
-        unsigned int memHL = Z80opsImpl.peek8(memptr);
+        uint16_t memHL = Z80opsImpl.peek8(memptr);
         regA = (regA & 0xf0) | (memHL >> 4);
         Z80opsImpl.contendedStates(memptr, 4);
         Z80opsImpl.poke8(memptr, ((memHL << 4) | aux) & 0xff);
@@ -1443,7 +1443,7 @@ public:
     void ini() {
         memptr = getRegBC();
         Z80opsImpl.contendedStates(getPairIR(), 1);
-        unsigned int work8 = Z80opsImpl.inPort(memptr);
+        uint8_t work8 = Z80opsImpl.inPort(memptr);
         Z80opsImpl.poke8(getRegHL(), work8);
 
         memptr++;
@@ -1477,7 +1477,7 @@ public:
     void ind() {
         memptr = getRegBC();
         Z80opsImpl.contendedStates(getPairIR(), 1);
-        unsigned int work8 = Z80opsImpl.inPort(memptr);
+        uint8_t work8 = Z80opsImpl.inPort(memptr);
         Z80opsImpl.poke8(getRegHL(), work8);
 
         memptr--;
@@ -1667,17 +1667,17 @@ public:
         regPC = memptr = 0x0066;
     }
 
-    bool isBreakpoint(unsigned int address) {
+    bool isBreakpoint(uint16_t address) {
         return breakpointAt[address & 0xffff];
     }
 
-    void setBreakpoint(unsigned int address, bool state) {
-        breakpointAt[address & 0xffff] = state;
+    void setBreakpoint(uint16_t address, bool state) {
+        breakpointAt[address] = state;
     }
 
     void resetBreakpoints() {
         // d6
-        for (int i = 0; i < 65536; i++) {
+        for (int i = 0; i < 0x10000; i++) {
             breakpointAt[i] = false;
         }
     }
@@ -1781,7 +1781,7 @@ public:
         } /* del while */
     }
 
-    void decodeOpcode(unsigned int opCode) {
+    void decodeOpcode(uint8_t opCode) {
 
         switch (opCode) {
                 //            case 0x00:       /* NOP */
@@ -4743,7 +4743,7 @@ public:
      * Naturalmente, en una serie repetida de DDFD no hay que comprobar las
      * interrupciones entre cada prefijo.
      */
-    u decodeDDFD(uint16_t regIXY) {
+    uint16_t decodeDDFD(uint16_t regIXY) {
 
         regR++;
         opCode = Z80opsImpl.fetchOpcode(regPC);
@@ -4836,7 +4836,7 @@ public:
             { /* INC (IX+d) */
                 memptr = regIXY + (uint8_t) Z80opsImpl.peek8(regPC);
                 Z80opsImpl.contendedStates(regPC, 5);
-                unsigned int work8 = Z80opsImpl.peek8(memptr);
+                uint8_t work8 = Z80opsImpl.peek8(memptr);
                 Z80opsImpl.contendedStates(memptr, 1);
                 Z80opsImpl.poke8(memptr, inc8(work8));
                 regPC++;
@@ -4846,7 +4846,7 @@ public:
             { /* DEC (IX+d) */
                 memptr = regIXY + (uint8_t) Z80opsImpl.peek8(regPC);
                 Z80opsImpl.contendedStates(regPC, 5);
-                unsigned int work8 = Z80opsImpl.peek8(memptr);
+                uint8_t work8 = Z80opsImpl.peek8(memptr);
                 Z80opsImpl.contendedStates(memptr, 1);
                 Z80opsImpl.poke8(memptr, dec8(work8));
                 regPC++;
@@ -5319,7 +5319,7 @@ public:
 
     // Subconjunto de instrucciones 0xDDCB desde el código 0x00 hasta el 0x7F
 
-    void decodeDDFDCBto7F(unsigned opCode, unsigned int address) {
+    void decodeDDFDCBto7F(uint8_t opCode, uint16_t address) {
 
         switch (opCode) {
             case 0x00:
@@ -5895,7 +5895,7 @@ public:
 
     // Subconjunto de instrucciones 0xDDCB desde el código 0x80 hasta el 0xFF
 
-    void decodeDDFDCBtoFF(unsigned int opCode, unsigned int address) {
+    void decodeDDFDCBtoFF(uint8_t opCode, uint16_t address) {
 
         switch (opCode) {
             case 0x80:
@@ -7067,7 +7067,7 @@ public:
             case 0x70:
             { /* IN (C) */
                 memptr = getRegBC();
-                unsigned int inPort = Z80opsImpl.inPort(memptr++);
+                uint8_t inPort = Z80opsImpl.inPort(memptr++);
                 sz5h3pnFlags = sz53pn_addTable[inPort];
                 flagQ = true;
                 break;
@@ -7252,42 +7252,42 @@ Z80operations::Z80operations() {
     cout << "Terminando constructor de Z80operations" << endl;
 }
 
-unsigned int Z80operations::fetchOpcode(unsigned int address) {
+uint8_t Z80operations::fetchOpcode(uint16_t address) {
     // 3 clocks to fetch opcode from RAM and 1 execution clock
     klock.addTstates(4);
     //cout << "fech opcode from address " << address << endl;
-    return z80Ram[address] & 0xff;
+    return z80Ram[address];
 }
 
-unsigned int Z80operations::peek8(unsigned int address) {
+uint8_t Z80operations::peek8(uint16_t address) {
     klock.addTstates(3); // 3 clocks for read unsigned char from RAM
-    return z80Ram[address] & 0xff;
+    return z80Ram[address];
 }
 
-void Z80operations::poke8(unsigned int address, unsigned int value) {
+void Z80operations::poke8(uint16_t address, uint8_t value) {
     klock.addTstates(3); // 3 clocks for write unsigned char to RAM
-    z80Ram[address] = (unsigned char) value;
+    z80Ram[address] = value;
 }
 
-unsigned int Z80operations::peek16(unsigned int address) {
+uint16_t Z80operations::peek16(uint16_t address) {
     unsigned int lsb = peek8(address);
     unsigned int msb = peek8(address + 1);
     return (msb << 8) | lsb;
 }
 
-void Z80operations::poke16(unsigned int address, unsigned int word) {
+void Z80operations::poke16(uint16_t address, uint16_t word) {
     poke8(address, word);
     poke8(address + 1, word >> 8);
 }
 
-unsigned int Z80operations::inPort(unsigned int port) {
+uint8_t Z80operations::inPort(uint16_t port) {
     klock.addTstates(4); // 4 clocks for read unsigned char from bus
-    return z80Ports[port] & 0xff;
+    return z80Ports[port];
 }
 
-void Z80operations::outPort(unsigned int port, unsigned int value) {
+void Z80operations::outPort(uint16_t port, uint8_t value) {
     klock.addTstates(4); // 4 clocks for write unsigned char to bus
-    z80Ports[port] = (unsigned char) value;
+    z80Ports[port] = value;
 }
 
 void Z80operations::contendedStates(uint16_t address, uint32_t tstates) {

@@ -2,14 +2,15 @@
 //... https://github.com/jsanchezv/Z80Core
 //... commit c4f267e3564fa89bd88fd2d1d322f4d6b0069dbd
 //... GPL 3
-//... v0.0.2 (22/01/2017)
-//    conversion by dddddd (AKA deesix)
+//... v0.0.3 (24/01/2017)
+//    quick & dirty conversion by dddddd (AKA deesix)
 
 //... compile with $ g++ -m32 -std=c++14
 //... put the zen*bin files in the same directory.
 
 #include <iostream>
 #include <fstream>
+#include <cstdint>
 using namespace std;
 
 class Klock {
@@ -46,8 +47,8 @@ class Z80; // forward declaration.
 class Z80operations {
 private:
     Klock klock;
-    char z80Ram[0x10000];
-    char z80Ports[0x10000];
+    uint8_t z80Ram[0x10000];
+    uint8_t z80Ports[0x10000];
     bool finish = true;
 
 public:
@@ -63,7 +64,7 @@ public:
     unsigned int inPort(unsigned int port);
     void outPort(unsigned int port, unsigned int value);
 
-    void contendedStates(unsigned int address, unsigned int tstates);
+    void contendedStates(uint16_t address, uint32_t tstates);
 
     void breakpoint();
     void execDone();
@@ -125,7 +126,7 @@ private:
     unsigned int regBx, regCx, regDx, regEx, regHx, regLx;
     // Registros de propósito específico
     // *PC -- Program Counter -- 16 bits*
-    unsigned int regPC;
+    uint16_t regPC;
     // *IX -- Registro de índice -- 16 bits*
     unsigned int regIX;
     // *IY -- Registro de índice -- 16 bits*
@@ -502,12 +503,12 @@ public:
 
     // Acceso a registros de propósito específico
 
-    unsigned int getRegPC() {
+    uint16_t getRegPC() {
         return regPC;
     }
 
-    void setRegPC(unsigned int address) {
-        regPC = address & 0xffff;
+    void setRegPC(uint16_t address) {
+        regPC = address;
     }
 
     unsigned int getRegSP() {
@@ -1626,14 +1627,14 @@ public:
         // Si estaba en un HALT esperando una INT, lo saca de la espera
         if (halted) {
             halted = false;
-            regPC = (regPC + 1) & 0xffff;
+            regPC++;
         }
 
         klock.addTstates(7);
 
         regR++;
         ffIFF1 = ffIFF2 = false;
-        push(regPC); // el push a�adir� 6 t-estados (+contended si toca)
+        push(regPC); // el push añadirá 6 t-estados (+contended si toca)
         if (modeINT == IntMode::IM2) {
             regPC = Z80opsImpl.peek16((regI << 8) | 0xff); // +6 t-estados
         } else {
@@ -1658,7 +1659,7 @@ public:
         klock.addTstates(1);
         if (halted) {
             halted = false;
-            regPC = (regPC + 1) & 0xffff;
+            regPC++;
         }
         regR++;
         ffIFF1 = false;
@@ -1708,7 +1709,7 @@ public:
 
         regR++;
         opCode = Z80opsImpl.fetchOpcode(regPC);
-        regPC = (regPC + 1) & 0xffff;
+        regPC++;
 
         flagQ = false;
 
@@ -1788,7 +1789,7 @@ public:
             case 0x01:
             { /* LD BC,nn */
                 setRegBC(Z80opsImpl.peek16(regPC));
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x02:
@@ -1816,7 +1817,7 @@ public:
             case 0x06:
             { /* LD B,n */
                 regB = Z80opsImpl.peek8(regPC);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x07:
@@ -1872,7 +1873,7 @@ public:
             case 0x0E:
             { /* LD C,n */
                 regC = Z80opsImpl.peek8(regPC);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x0F:
@@ -1894,16 +1895,16 @@ public:
                 if (regB != 0) {
                     regB &= 0xff;
                     Z80opsImpl.contendedStates(regPC, 5);
-                    regPC = memptr = (regPC + offset + 1) & 0xffff;
+                    regPC = memptr = regPC + offset + 1;
                 } else {
-                    regPC = (regPC + 1) & 0xffff;
+                    regPC++;
                 }
                 break;
             }
             case 0x11:
             { /* LD DE,nn */
                 setRegDE(Z80opsImpl.peek16(regPC));
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x12:
@@ -1931,7 +1932,7 @@ public:
             case 0x16:
             { /* LD D,n */
                 regD = Z80opsImpl.peek8(regPC);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x17:
@@ -1950,7 +1951,7 @@ public:
             { /* JR e */
                 unsigned char offset = (unsigned char) Z80opsImpl.peek8(regPC);
                 Z80opsImpl.contendedStates(regPC, 5);
-                regPC = memptr = (regPC + offset + 1) & 0xffff;
+                regPC = memptr = regPC + offset + 1;
                 break;
             }
             case 0x19:
@@ -1984,7 +1985,7 @@ public:
             case 0x1E:
             { /* LD E,n */
                 regE = Z80opsImpl.peek8(regPC);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x1F:
@@ -2007,20 +2008,20 @@ public:
                     regPC += offset;
                     memptr = regPC + 1;
                 }
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x21:
             { /* LD HL,nn */
                 setRegHL(Z80opsImpl.peek16(regPC));
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x22:
             { /* LD (nn),HL */
                 memptr = Z80opsImpl.peek16(regPC);
                 Z80opsImpl.poke16(memptr++, getRegHL());
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x23:
@@ -2042,7 +2043,7 @@ public:
             case 0x26:
             { /* LD H,n */
                 regH = Z80opsImpl.peek8(regPC);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x27:
@@ -2058,7 +2059,7 @@ public:
                     regPC += offset;
                     memptr = regPC + 1;
                 }
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x29:
@@ -2072,7 +2073,7 @@ public:
             { /* LD HL,(nn) */
                 memptr = Z80opsImpl.peek16(regPC);
                 setRegHL(Z80opsImpl.peek16(memptr++));
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x2B:
@@ -2094,7 +2095,7 @@ public:
             case 0x2E:
             { /* LD L,n */
                 regL = Z80opsImpl.peek8(regPC);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x2F:
@@ -2113,13 +2114,13 @@ public:
                     regPC += offset;
                     memptr = regPC + 1;
                 }
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x31:
             { /* LD SP,nn */
                 regSP = Z80opsImpl.peek16(regPC);
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x32:
@@ -2127,7 +2128,7 @@ public:
                 memptr = Z80opsImpl.peek16(regPC);
                 Z80opsImpl.poke8(memptr, regA);
                 memptr = (regA << 8) | ((memptr + 1) & 0xff);
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x33:
@@ -2155,7 +2156,7 @@ public:
             case 0x36:
             { /* LD (HL),n */
                 Z80opsImpl.poke8(getRegHL(), Z80opsImpl.peek8(regPC));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x37:
@@ -2174,7 +2175,7 @@ public:
                     regPC += offset;
                     memptr = regPC + 1;
                 }
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x39:
@@ -2187,7 +2188,7 @@ public:
             { /* LD A,(nn) */
                 memptr = Z80opsImpl.peek16(regPC);
                 regA = Z80opsImpl.peek8(memptr++);
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x3B:
@@ -2209,7 +2210,7 @@ public:
             case 0x3E:
             { /* LD A,n */
                 regA = Z80opsImpl.peek8(regPC);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x3F:
@@ -2483,7 +2484,7 @@ public:
             }
             case 0x76:
             { /* HALT */
-                regPC = (regPC - 1) & 0xffff;
+                regPC--;
                 halted = true;
                 break;
             }
@@ -2886,7 +2887,7 @@ public:
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0xC3:
@@ -2898,12 +2899,12 @@ public:
             { /* CALL NZ,nn */
                 memptr = Z80opsImpl.peek16(regPC);
                 if ((sz5h3pnFlags & ZERO_MASK) == 0) {
-                    Z80opsImpl.contendedStates((regPC + 1) & 0xffff, 1);
+                    Z80opsImpl.contendedStates(regPC + 1, 1);
                     push(regPC + 2);
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0xC5:
@@ -2916,7 +2917,7 @@ public:
             { /* ADD A,n */
                 carryFlag = false;
                 adc(Z80opsImpl.peek8(regPC));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xC7:
@@ -2946,7 +2947,7 @@ public:
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0xCB:
@@ -2958,18 +2959,18 @@ public:
             { /* CALL Z,nn */
                 memptr = Z80opsImpl.peek16(regPC);
                 if ((sz5h3pnFlags & ZERO_MASK) != 0) {
-                    Z80opsImpl.contendedStates((regPC + 1) & 0xffff, 1);
+                    Z80opsImpl.contendedStates(regPC + 1, 1);
                     push(regPC + 2);
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0xCD:
             { /* CALL nn */
                 memptr = Z80opsImpl.peek16(regPC);
-                Z80opsImpl.contendedStates((regPC + 1) & 0xffff, 1);
+                Z80opsImpl.contendedStates(regPC + 1, 1);
                 push(regPC + 2);
                 regPC = memptr;
                 break;
@@ -2977,7 +2978,7 @@ public:
             case 0xCE:
             { /* ADC A,n */
                 adc(Z80opsImpl.peek8(regPC));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xCF:
@@ -3007,7 +3008,7 @@ public:
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0xD3:
@@ -3016,19 +3017,19 @@ public:
                 memptr = regA << 8;
                 Z80opsImpl.outPort(memptr | work8, regA);
                 memptr |= ((work8 + 1) & 0xff);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xD4:
             { /* CALL NC,nn */
                 memptr = Z80opsImpl.peek16(regPC);
                 if (!carryFlag) {
-                    Z80opsImpl.contendedStates((regPC + 1) & 0xffff, 1);
+                    Z80opsImpl.contendedStates(regPC + 1, 1);
                     push(regPC + 2);
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0xD5:
@@ -3041,7 +3042,7 @@ public:
             { /* SUB n */
                 carryFlag = false;
                 sbc(Z80opsImpl.peek8(regPC));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xD7:
@@ -3093,26 +3094,26 @@ public:
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0xDB:
             { /* IN A,(n) */
                 memptr = (regA << 8) | Z80opsImpl.peek8(regPC);
                 regA = Z80opsImpl.inPort(memptr++);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xDC:
             { /* CALL C,nn */
                 memptr = Z80opsImpl.peek16(regPC);
                 if (carryFlag) {
-                    Z80opsImpl.contendedStates((regPC + 1) & 0xffff, 1);
+                    Z80opsImpl.contendedStates(regPC + 1, 1);
                     push(regPC + 2);
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0xDD:
@@ -3123,7 +3124,7 @@ public:
             case 0xDE:
             { /* SBC A,n */
                 sbc(Z80opsImpl.peek8(regPC));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xDF:
@@ -3148,7 +3149,7 @@ public:
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             case 0xE3:
             { /* EX (SP),HL */
@@ -3167,12 +3168,12 @@ public:
             case 0xE4: /* CALL PO,nn */
                 memptr = Z80opsImpl.peek16(regPC);
                 if ((sz5h3pnFlags & PARITY_MASK) == 0) {
-                    Z80opsImpl.contendedStates((regPC + 1) & 0xffff, 1);
+                    Z80opsImpl.contendedStates(regPC + 1, 1);
                     push(regPC + 2);
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             case 0xE5: /* PUSH HL */
                 Z80opsImpl.contendedStates(getPairIR(), 1);
@@ -3180,7 +3181,7 @@ public:
                 break;
             case 0xE6: /* AND n */
                 and_(Z80opsImpl.peek8(regPC));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             case 0xE7: /* RST 20H */
                 Z80opsImpl.contendedStates(getPairIR(), 1);
@@ -3202,7 +3203,7 @@ public:
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             case 0xEB:
             { /* EX DE,HL */
@@ -3218,19 +3219,19 @@ public:
             case 0xEC: /* CALL PE,nn */
                 memptr = Z80opsImpl.peek16(regPC);
                 if ((sz5h3pnFlags & PARITY_MASK) != 0) {
-                    Z80opsImpl.contendedStates((regPC + 1) & 0xffff, 1);
+                    Z80opsImpl.contendedStates(regPC + 1, 1);
                     push(regPC + 2);
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             case 0xED: /*Subconjunto de instrucciones*/
                 decodeED();
                 break;
             case 0xEE: /* XOR n */
                 xor_(Z80opsImpl.peek8(regPC));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             case 0xEF: /* RST 28H */
                 Z80opsImpl.contendedStates(getPairIR(), 1);
@@ -3252,7 +3253,7 @@ public:
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             case 0xF3: /* DI */
                 ffIFF1 = ffIFF2 = false;
@@ -3260,12 +3261,12 @@ public:
             case 0xF4: /* CALL P,nn */
                 memptr = Z80opsImpl.peek16(regPC);
                 if (sz5h3pnFlags < SIGN_MASK) {
-                    Z80opsImpl.contendedStates((regPC + 1) & 0xffff, 1);
+                    Z80opsImpl.contendedStates(regPC + 1, 1);
                     push(regPC + 2);
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             case 0xF5: /* PUSH AF */
                 Z80opsImpl.contendedStates(getPairIR(), 1);
@@ -3273,7 +3274,7 @@ public:
                 break;
             case 0xF6: /* OR n */
                 or_(Z80opsImpl.peek8(regPC));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             case 0xF7: /* RST 30H */
                 Z80opsImpl.contendedStates(getPairIR(), 1);
@@ -3296,7 +3297,7 @@ public:
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             case 0xFB: /* EI */
                 ffIFF1 = ffIFF2 = true;
@@ -3305,19 +3306,19 @@ public:
             case 0xFC: /* CALL M,nn */
                 memptr = Z80opsImpl.peek16(regPC);
                 if (sz5h3pnFlags > 0x7f) {
-                    Z80opsImpl.contendedStates((regPC + 1) & 0xffff, 1);
+                    Z80opsImpl.contendedStates(regPC + 1, 1);
                     push(regPC + 2);
                     regPC = memptr;
                     break;
                 }
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             case 0xFD: /* Subconjunto de instrucciones */
                 regIY = decodeDDFD(regIY);
                 break;
             case 0xFE: /* CP n */
                 cp(Z80opsImpl.peek8(regPC));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             case 0xFF: /* RST 38H */
                 Z80opsImpl.contendedStates(getPairIR(), 1);
@@ -3332,7 +3333,7 @@ public:
 
         regR++;
         opCode = Z80opsImpl.fetchOpcode(regPC);
-        regPC = (regPC + 1) & 0xffff;
+        regPC++;
 
         switch (opCode) {
             case 0x00:
@@ -4746,7 +4747,7 @@ public:
 
         regR++;
         opCode = Z80opsImpl.fetchOpcode(regPC);
-        regPC = (regPC + 1) & 0xffff;
+        regPC++;
 
         switch (opCode) {
             case 0x09:
@@ -4764,14 +4765,14 @@ public:
             case 0x21:
             { /* LD IX,nn */
                 regIXY = Z80opsImpl.peek16(regPC);
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x22:
             { /* LD (nn),IX */
                 memptr = Z80opsImpl.peek16(regPC);
                 Z80opsImpl.poke16(memptr++, regIXY);
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x23:
@@ -4793,7 +4794,7 @@ public:
             case 0x26:
             { /* LD IXh,n */
                 regIXY = (Z80opsImpl.peek8(regPC) << 8) | (regIXY & 0xff);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x29:
@@ -4806,7 +4807,7 @@ public:
             { /* LD IX,(nn) */
                 memptr = Z80opsImpl.peek16(regPC);
                 regIXY = Z80opsImpl.peek16(memptr++);
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x2B:
@@ -4828,7 +4829,7 @@ public:
             case 0x2E:
             { /* LD IXl,n */
                 regIXY = (regIXY & 0xff00) | Z80opsImpl.peek8(regPC);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x34:
@@ -4838,7 +4839,7 @@ public:
                 unsigned int work8 = Z80opsImpl.peek8(memptr);
                 Z80opsImpl.contendedStates(memptr, 1);
                 Z80opsImpl.poke8(memptr, inc8(work8));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x35:
@@ -4848,16 +4849,16 @@ public:
                 unsigned int work8 = Z80opsImpl.peek8(memptr);
                 Z80opsImpl.contendedStates(memptr, 1);
                 Z80opsImpl.poke8(memptr, dec8(work8));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x36:
             { /* LD (IX+d),n */
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 unsigned int work8 = Z80opsImpl.peek8(regPC);
                 Z80opsImpl.contendedStates(regPC, 2);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 Z80opsImpl.poke8(memptr, work8);
                 break;
             }
@@ -4882,7 +4883,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 regB = Z80opsImpl.peek8(memptr);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x4C:
@@ -4900,7 +4901,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 regC = Z80opsImpl.peek8(memptr);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x54:
@@ -4918,7 +4919,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 regD = Z80opsImpl.peek8(memptr);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x5C:
@@ -4936,7 +4937,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 regE = Z80opsImpl.peek8(memptr);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x60:
@@ -4973,7 +4974,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 regH = Z80opsImpl.peek8(memptr);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x67:
@@ -5015,7 +5016,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 regL = Z80opsImpl.peek8(memptr);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x6F:
@@ -5028,7 +5029,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 Z80opsImpl.poke8(memptr, regB);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x71:
@@ -5036,7 +5037,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 Z80opsImpl.poke8(memptr, regC);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x72:
@@ -5044,7 +5045,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 Z80opsImpl.poke8(memptr, regD);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x73:
@@ -5052,7 +5053,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 Z80opsImpl.poke8(memptr, regE);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x74:
@@ -5060,7 +5061,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 Z80opsImpl.poke8(memptr, regH);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x75:
@@ -5068,7 +5069,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 Z80opsImpl.poke8(memptr, regL);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x77:
@@ -5076,7 +5077,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 Z80opsImpl.poke8(memptr, regA);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x7C:
@@ -5094,7 +5095,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 regA = Z80opsImpl.peek8(memptr);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x84:
@@ -5115,7 +5116,7 @@ public:
                 Z80opsImpl.contendedStates(regPC, 5);
                 carryFlag = false;
                 adc(Z80opsImpl.peek8(memptr));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x8C:
@@ -5133,7 +5134,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 adc(Z80opsImpl.peek8(memptr));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x94:
@@ -5154,7 +5155,7 @@ public:
                 Z80opsImpl.contendedStates(regPC, 5);
                 carryFlag = false;
                 sbc(Z80opsImpl.peek8(memptr));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0x9C:
@@ -5172,7 +5173,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 sbc(Z80opsImpl.peek8(memptr));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xA4:
@@ -5190,7 +5191,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 and_(Z80opsImpl.peek8(memptr));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xAC:
@@ -5208,7 +5209,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 xor_(Z80opsImpl.peek8(memptr));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xB4:
@@ -5226,7 +5227,7 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 or_(Z80opsImpl.peek8(memptr));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xBC:
@@ -5244,16 +5245,16 @@ public:
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
                 Z80opsImpl.contendedStates(regPC, 5);
                 cp(Z80opsImpl.peek8(memptr));
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 break;
             }
             case 0xCB:
             { /* Subconjunto de instrucciones */
                 memptr = (regIXY + (unsigned char) Z80opsImpl.peek8(regPC)) & 0xffff;
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 opCode = Z80opsImpl.peek8(regPC);
                 Z80opsImpl.contendedStates(regPC, 2);
-                regPC = (regPC + 1) & 0xffff;
+                regPC++;
                 if (opCode < 0x80) {
                     decodeDDFDCBto7F(opCode, memptr);
                 } else {
@@ -6802,7 +6803,7 @@ public:
 
         regR++;
         opCode = Z80opsImpl.fetchOpcode(regPC);
-        regPC = (regPC + 1) & 0xffff;
+        regPC++;
 
         switch (opCode) {
             case 0x40:
@@ -6829,7 +6830,7 @@ public:
             { /* LD (nn),BC */
                 memptr = Z80opsImpl.peek16(regPC);
                 Z80opsImpl.poke16(memptr++, getRegBC());
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x44:
@@ -6902,7 +6903,7 @@ public:
             { /* LD BC,(nn) */
                 memptr = Z80opsImpl.peek16(regPC);
                 setRegBC(Z80opsImpl.peek16(memptr++));
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x4F:
@@ -6935,7 +6936,7 @@ public:
             { /* LD (nn),DE */
                 memptr = Z80opsImpl.peek16(regPC);
                 Z80opsImpl.poke16(memptr++, getRegDE());
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x56:
@@ -6979,7 +6980,7 @@ public:
             { /* LD DE,(nn) */
                 memptr = Z80opsImpl.peek16(regPC);
                 setRegDE(Z80opsImpl.peek16(memptr++));
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x5E:
@@ -7023,7 +7024,7 @@ public:
             { /* LD (nn),HL */
                 memptr = Z80opsImpl.peek16(regPC);
                 Z80opsImpl.poke16(memptr++, getRegHL());
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x67:
@@ -7055,7 +7056,7 @@ public:
             { /* LD HL,(nn) */
                 memptr = Z80opsImpl.peek16(regPC);
                 setRegHL(Z80opsImpl.peek16(memptr++));
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x6F:
@@ -7087,7 +7088,7 @@ public:
             { /* LD (nn),SP */
                 memptr = Z80opsImpl.peek16(regPC);
                 Z80opsImpl.poke16(memptr++, regSP);
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0x78:
@@ -7114,7 +7115,7 @@ public:
             { /* LD SP,(nn) */
                 memptr = Z80opsImpl.peek16(regPC);
                 regSP = Z80opsImpl.peek16(memptr++);
-                regPC = (regPC + 2) & 0xffff;
+                regPC = regPC + 2;
                 break;
             }
             case 0xA0:
@@ -7161,7 +7162,7 @@ public:
             { /* LDIR */
                 ldi();
                 if ((sz5h3pnFlags & PARITY_MASK) == PARITY_MASK) {
-                    regPC = (regPC - 2) & 0xffff;
+                    regPC = regPC - 2;
                     memptr = regPC + 1;
                     Z80opsImpl.contendedStates((getRegDE() - 1) & 0xffff, 5);
                 }
@@ -7172,7 +7173,7 @@ public:
                 cpi();
                 if ((sz5h3pnFlags & PARITY_MASK) == PARITY_MASK
                         && (sz5h3pnFlags & ZERO_MASK) == 0) {
-                    regPC = (regPC - 2) & 0xffff;
+                    regPC = regPC - 2;
                     memptr = regPC + 1;
                     Z80opsImpl.contendedStates((getRegHL() - 1) & 0xffff, 5);
                 }
@@ -7182,7 +7183,7 @@ public:
             { /* INIR */
                 ini();
                 if (regB != 0) {
-                    regPC = (regPC - 2) & 0xffff;
+                    regPC = regPC - 2;
                     Z80opsImpl.contendedStates((getRegHL() - 1) & 0xffff, 5);
                 }
                 break;
@@ -7191,7 +7192,7 @@ public:
             { /* OTIR */
                 outi();
                 if (regB != 0) {
-                    regPC = (regPC - 2) & 0xffff;
+                    regPC = regPC - 2;
                     Z80opsImpl.contendedStates(getRegBC(), 5);
                 }
                 break;
@@ -7200,7 +7201,7 @@ public:
             { /* LDDR */
                 ldd();
                 if ((sz5h3pnFlags & PARITY_MASK) == PARITY_MASK) {
-                    regPC = (regPC - 2) & 0xffff;
+                    regPC = regPC - 2;
                     memptr = regPC + 1;
                     Z80opsImpl.contendedStates((getRegDE() + 1) & 0xffff, 5);
                 }
@@ -7211,7 +7212,7 @@ public:
                 cpd();
                 if ((sz5h3pnFlags & PARITY_MASK) == PARITY_MASK
                         && (sz5h3pnFlags & ZERO_MASK) == 0) {
-                    regPC = (regPC - 2) & 0xffff;
+                    regPC = regPC - 2;
                     memptr = regPC + 1;
                     Z80opsImpl.contendedStates((getRegHL() + 1) & 0xffff, 5);
                 }
@@ -7221,7 +7222,7 @@ public:
             { /* INDR */
                 ind();
                 if (regB != 0) {
-                    regPC = (regPC - 2) & 0xffff;
+                    regPC = regPC - 2;
                     Z80opsImpl.contendedStates((getRegHL() + 1) & 0xffff, 5);
                 }
                 break;
@@ -7230,7 +7231,7 @@ public:
             { /* OTDR */
                 outd();
                 if (regB != 0) {
-                    regPC = (regPC - 2) & 0xffff;
+                    regPC = regPC - 2;
                     Z80opsImpl.contendedStates(getRegBC(), 5);
                 }
                 break;
@@ -7289,7 +7290,7 @@ void Z80operations::outPort(unsigned int port, unsigned int value) {
     z80Ports[port] = (unsigned char) value;
 }
 
-void Z80operations::contendedStates(unsigned int address, unsigned int tstates) {
+void Z80operations::contendedStates(uint16_t address, uint32_t tstates) {
     // Additional clocks to be added on some instructions
     klock.addTstates(tstates);
 }
@@ -7339,7 +7340,7 @@ void Z80operations::runTest(ifstream* f) {
     size = f->tellg();
     cout << "Test size: " << size << endl;
     f->seekg(0, ios::beg);
-    f->read(&z80Ram[0x100], size);
+    f->read((char *)&z80Ram[0x100], size);
     f->close();
 
     z80->reset();

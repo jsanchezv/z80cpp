@@ -2,7 +2,7 @@
 //... https://github.com/jsanchezv/Z80Core
 //... commit c4f267e3564fa89bd88fd2d1d322f4d6b0069dbd
 //... GPL 3
-//... v0.0.5 (24/01/2017)
+//... v0.0.6 (24/01/2017)
 //    quick & dirty conversion by dddddd (AKA deesix)
 
 //... compile with $ g++ -m32 -std=c++14
@@ -16,15 +16,15 @@ using namespace std;
 class Klock {
 public:
 
-    unsigned long getTstates() {
+    uint32_t getTstates() {
         return tstates;
     }
 
-    void setTstates(unsigned long nstates) {
+    void setTstates(uint32_t nstates) {
         tstates = nstates;
     }
 
-    void addTstates(unsigned long nstates) {
+    void addTstates(uint32_t nstates) {
         tstates += nstates;
     }
 
@@ -33,13 +33,13 @@ public:
         frames = timeout = tstates = 0;
     }
 
-    void setTimeout(unsigned long ntstates) {
+    void setTimeout(uint32_t ntstates) {
     }
 
 private:
-    unsigned long tstates;
-    unsigned long frames;
-    unsigned long timeout;
+    uint32_t tstates;
+    uint32_t frames;
+    uint32_t timeout;
 };
 
 class Z80; // forward declaration.
@@ -511,12 +511,12 @@ public:
         regPC = address;
     }
 
-    unsigned int getRegSP() {
+    uint16_t getRegSP() {
         return regSP;
     }
 
-    void setRegSP(unsigned int word) {
-        regSP = word & 0xffff;
+    void setRegSP(uint16_t word) {
+        regSP = word;
     }
 
     unsigned int getRegIX() {
@@ -1324,25 +1324,25 @@ public:
     // POP
 
     unsigned int pop() {
-        unsigned int word = Z80opsImpl.peek16(regSP);
-        regSP = (regSP + 2) & 0xffff;
+        uint16_t word = Z80opsImpl.peek16(regSP);
+        regSP = regSP + 2;
         return word;
     }
 
     // PUSH
 
-    void push(unsigned int word) {
-        regSP = (regSP - 1) & 0xffff;
+    void push(uint16_t word) {
+        regSP--;
         Z80opsImpl.poke8(regSP, word >> 8);
-        regSP = (regSP - 1) & 0xffff;
+        regSP--;
         Z80opsImpl.poke8(regSP, word);
     }
 
     // LDI
 
     void ldi() {
-        unsigned int work8 = Z80opsImpl.peek8(getRegHL());
-        unsigned int regDE = getRegDE();
+        uint8_t work8 = Z80opsImpl.peek8(getRegHL());
+        uint16_t regDE = getRegDE();
         Z80opsImpl.poke8(regDE, work8);
         Z80opsImpl.contendedStates(regDE, 2);
         incRegHL();
@@ -1365,8 +1365,8 @@ public:
     // LDD
 
     void ldd() {
-        unsigned int work8 = Z80opsImpl.peek8(getRegHL());
-        unsigned int regDE = getRegDE();
+        uint8_t work8 = Z80opsImpl.peek8(getRegHL());
+        uint16_t regDE = getRegDE();
         Z80opsImpl.poke8(regDE, work8);
         Z80opsImpl.contendedStates(regDE, 2);
         decRegHL();
@@ -1389,8 +1389,8 @@ public:
     // CPI
 
     void cpi() {
-        unsigned int regHL = getRegHL();
-        unsigned int memHL = Z80opsImpl.peek8(regHL);
+        uint16_t regHL = getRegHL();
+        uint16_t memHL = Z80opsImpl.peek8(regHL);
         bool carry = carryFlag; // lo guardo porque cp lo toca
         cp(memHL);
         carryFlag = carry;
@@ -1415,8 +1415,8 @@ public:
     // CPD
 
     void cpd() {
-        unsigned int regHL = getRegHL();
-        unsigned int memHL = Z80opsImpl.peek8(regHL);
+        uint16_t regHL = getRegHL();
+        uint16_t memHL = Z80opsImpl.peek8(regHL);
         bool carry = carryFlag; // lo guardo porque cp lo toca
         cp(memHL);
         carryFlag = carry;
@@ -1457,7 +1457,7 @@ public:
         }
 
         carryFlag = false;
-        unsigned int tmp = work8 + ((regC + 1) & 0xff);
+        uint16_t tmp = work8 + ((regC + 1) & 0xff);
         if (tmp > 0xff) {
             sz5h3pnFlags |= HALFCARRY_MASK;
             carryFlag = true;
@@ -1491,7 +1491,7 @@ public:
         }
 
         carryFlag = false;
-        unsigned int tmp = work8 + ((regC - 1) & 0xff);
+        uint16_t tmp = work8 + ((regC - 1) & 0xff);
         if (tmp > 0xff) {
             sz5h3pnFlags |= HALFCARRY_MASK;
             carryFlag = true;
@@ -1515,7 +1515,7 @@ public:
         regB = (regB - 1) & 0xff;
         memptr = getRegBC();
 
-        unsigned int work8 = Z80opsImpl.peek8(getRegHL());
+        uint8_t work8 = Z80opsImpl.peek8(getRegHL());
         Z80opsImpl.outPort(memptr, work8);
         memptr++;
 
@@ -1549,7 +1549,7 @@ public:
         regB = (regB - 1) & 0xff;
         memptr = getRegBC();
 
-        unsigned int work8 = Z80opsImpl.peek8(getRegHL());
+        uint8_t work8 = Z80opsImpl.peek8(getRegHL());
         Z80opsImpl.outPort(memptr, work8);
         memptr--;
 
@@ -2134,7 +2134,7 @@ public:
             case 0x33:
             { /* INC SP */
                 Z80opsImpl.contendedStates(getPairIR(), 2);
-                regSP = (regSP + 1) & 0xffff;
+                regSP++;
                 break;
             }
             case 0x34:
@@ -2194,7 +2194,7 @@ public:
             case 0x3B:
             { /* DEC SP */
                 Z80opsImpl.contendedStates(getPairIR(), 2);
-                regSP = (regSP - 1) & 0xffff;
+                regSP--;
                 break;
             }
             case 0x3C:
@@ -3154,12 +3154,12 @@ public:
             case 0xE3:
             { /* EX (SP),HL */
                 // Instrucción de ejecución sutil.
-                unsigned int work16 = regH;
-                unsigned int work8 = regL;
+                uint16_t work16 = regH;
+                uint8_t work8 = regL;
                 setRegHL(Z80opsImpl.peek16(regSP));
-                Z80opsImpl.contendedStates((regSP + 1) & 0xffff, 1);
+                Z80opsImpl.contendedStates(regSP + 1, 1);
                 // No se usa poke16 porque el Z80 escribe los bytes AL REVES
-                Z80opsImpl.poke8((regSP + 1) & 0xffff, work16);
+                Z80opsImpl.poke8(regSP + 1, work16);
                 Z80opsImpl.poke8(regSP, work8);
                 Z80opsImpl.contendedStates(regSP, 2);
                 memptr = getRegHL();
@@ -5270,10 +5270,10 @@ public:
             case 0xE3:
             { /* EX (SP),IX */
                 // Instrucción de ejecución sutil como pocas... atento al dato.
-                unsigned int work16 = regIXY;
+                uint16_t work16 = regIXY;
                 regIXY = Z80opsImpl.peek16(regSP);
-                Z80opsImpl.contendedStates((regSP + 1) & 0xffff, 1);
-                Z80opsImpl.poke8((regSP + 1) & 0xffff, work16 >> 8);
+                Z80opsImpl.contendedStates(regSP + 1, 1);
+                Z80opsImpl.poke8(regSP + 1, work16 >> 8);
                 Z80opsImpl.poke8(regSP, work16);
                 Z80opsImpl.contendedStates(regSP, 2);
                 memptr = regIXY;

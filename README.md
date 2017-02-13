@@ -6,8 +6,11 @@ That's a port from Java to C++ of my Z80Core.
 To build:
 
 mkdir build
+
 cd build
+
 cmake ..
+
 make
 
 Then, you have an use case at dir 'example'.

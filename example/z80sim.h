@@ -29,7 +29,7 @@ public:
     void outPort(uint16_t port, uint8_t value) override;
     void addressOnBus(uint16_t address, uint32_t tstates) override;
     void interruptHandlingTime(uint32_t tstates) override;
-    void breakpoint(uint16_t address) override;
+    uint8_t breakpoint(uint16_t address, uint8_t opcode) override;
     void execDone(void) override;
 
     void runTest(std::ifstream* f);

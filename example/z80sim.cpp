@@ -63,7 +63,7 @@ void Z80sim::interruptHandlingTime(uint32_t tstates) {
 
 void Z80sim::execDone(void) {}
 
-void Z80sim::breakpoint(uint16_t address) {
+uint8_t Z80sim::breakpoint(uint16_t address, uint8_t opcode) {
     // Emulate CP/M Syscall at address 5
     switch (cpu.getRegC()) {
         case 0: // BDOS 0 System Reset
@@ -93,6 +93,8 @@ void Z80sim::breakpoint(uint16_t address) {
             cout << finish << endl;
         }
     }
+    // opcode would be modified before the decodeOpcode method
+    return opcode;
 }
 
 void Z80sim::runTest(std::ifstream* f) {

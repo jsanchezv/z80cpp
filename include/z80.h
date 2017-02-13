@@ -2,7 +2,7 @@
 //... https://github.com/jsanchezv/Z80Core
 //... commit c4f267e3564fa89bd88fd2d1d322f4d6b0069dbd
 //... GPL 3
-//... v0.0.7 (25/01/2017)
+//... v1.0.0 (13/02/2017)
 //    quick & dirty conversion by dddddd (AKA deesix)
 
 //... compile with $ g++ -m32 -std=c++14
@@ -138,7 +138,7 @@ private:
     // Si está activa la línea INT
     // En el 48 y los +2a/+3 la línea INT se activa durante 32 ciclos de reloj
     // En el 128 y +2, se activa 36 ciclos de reloj
-    bool activeINT = false;
+    volatile bool activeINT = false;
     // Modo de interrupción
     IntMode modeINT = IntMode::IM0;
     // halted == true cuando la CPU está ejecutando un HALT (28/03/2010)
@@ -186,7 +186,7 @@ private:
 
     // Un true en una dirección indica que se debe notificar que se va a
     // ejecutar la instrucción que está en esa direción.
-    bool breakpointAt[65536];
+    bool *breakpointAt;
 
 public:
     // Constructor de la clase

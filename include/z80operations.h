@@ -25,13 +25,13 @@ public:
     virtual void outPort(uint16_t port, uint8_t value) = 0;
 
     /* Put an address on bus lasting 'tstates' cycles */
-    virtual void addressOnBus(uint16_t address, uint32_t tstates) = 0;
-    
+    virtual void addressOnBus(uint16_t address, uint32_t wstates) = 0;
+
     /* Clocks needed for processing INT and NMI */
-    virtual void interruptHandlingTime(uint32_t tstates) = 0;
+    virtual void interruptHandlingTime(uint32_t wstates) = 0;
 
     /* Callback for notify at PC address */
-    virtual void breakpoint(uint16_t address) = 0;
+    virtual uint8_t breakpoint(uint16_t address, uint8_t opcode) = 0;
 
     /* Callback to notify that one instruction has ended */
     virtual void execDone(void) = 0;

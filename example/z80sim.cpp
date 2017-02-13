@@ -11,19 +11,18 @@ Z80sim::~Z80sim() {}
 
 uint8_t Z80sim::fetchOpcode(uint16_t address) {
     // 3 clocks to fetch opcode from RAM and 1 execution clock
-//    clock.addTstates(4);
     tstates += 4;
     return z80Ram[address];
 }
 
 uint8_t Z80sim::peek8(uint16_t address) {
-//    clock.addTstates(3); // 3 clocks for read byte from RAM
+    // 3 clocks for read byte from RAM
     tstates += 3;
     return z80Ram[address];
 }
 
 void Z80sim::poke8(uint16_t address, uint8_t value) {
-//    clock.addTstates(3); // 3 clocks for write byte to RAM
+    // 3 clocks for write byte to RAM
     tstates += 3;
     z80Ram[address] = value;
 }
@@ -42,25 +41,23 @@ void Z80sim::poke16(uint16_t address, uint16_t word) {
 }
 
 uint8_t Z80sim::inPort(uint16_t port) {
-//    clock.addTstates(4); // 4 clocks for read byte from bus
+    // 4 clocks for read byte from bus
     tstates += 3;
     return z80Ports[port];
 }
 
 void Z80sim::outPort(uint16_t port, uint8_t value) {
-//    clock.addTstates(4); // 4 clocks for write byte to bus
+    // 4 clocks for write byte to bus
     tstates += 4;
     z80Ports[port] = value;
 }
 
 void Z80sim::addressOnBus(uint16_t address, uint32_t tstates) {
     // Additional clocks to be added on some instructions
-//    clock.addTstates(tstates);
     this->tstates += tstates;
 }
 
 void Z80sim::interruptHandlingTime(uint32_t tstates) {
-//    clock.addTstates(tstates);
     this->tstates += tstates;
 }
 
@@ -82,11 +79,11 @@ void Z80sim::breakpoint(uint16_t address) {
         }
         case 9: // BDOS 9 console string output (string terminated by "$")
         {
-            // cout << "BDOS 9" << endl;
             uint16_t strAddr = cpu.getRegDE();
             while (z80Ram[strAddr] != '$') {
                 cout << (char) z80Ram[strAddr++];
             }
+            cout.flush();
             break;
         }
         default:
@@ -101,9 +98,9 @@ void Z80sim::breakpoint(uint16_t address) {
 void Z80sim::runTest(std::ifstream* f) {
     streampos size;
     if (!f->is_open()) {
-        cout << "f NOT OPEN" << endl;
+        cout << "file NOT OPEN" << endl;
         return;
-    } else cout << "f open" << endl;
+    } else cout << "file open" << endl;
 
     size = f->tellg();
     cout << "Test size: " << size << endl;
@@ -112,7 +109,6 @@ void Z80sim::runTest(std::ifstream* f) {
     f->close();
 
     cpu.reset();
-//    clock.reset();
     finish = false;
 
     z80Ram[0] = (uint8_t) 0xC3;

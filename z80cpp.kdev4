@@ -1,0 +1,4 @@
+[Project]
+Name=z80cpp
+Manager=KDevCMakeManager
+VersionControl=kdevgit

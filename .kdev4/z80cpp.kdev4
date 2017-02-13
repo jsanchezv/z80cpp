@@ -1,0 +1,26 @@
+[CMake]
+Build Directory Count=1
+Current Build Directory Index=0
+
+[CMake][CMake Build Directory 0]
+Build Directory Path=/home/jsanchez/src/z80cpp/build
+Build Type=Debug
+CMake Binary=/usr/bin/cmake
+Environment Profile=
+Extra Arguments=VERBOSE=1
+Install Directory=
+
+[CustomDefinesAndIncludes][ProjectPath0]
+Path=.
+parseAmbiguousAsCPP=true
+parserArguments=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunused-parameter -Wunreachable-code -Wall -std=c++14
+parserArgumentsC=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunused-parameter -Wunreachable-code -Wall -std=c99
+
+[CustomDefinesAndIncludes][ProjectPath0][Compiler]
+Name=Clang
+
+[CustomDefinesAndIncludes][ProjectPath0][Includes]
+1=/home/jsanchez/src/z80cpp/include/
+
+[Project]
+VersionControlSupport=kdevgit

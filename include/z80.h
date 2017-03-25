@@ -165,7 +165,6 @@ private:
      *                registro en TODAS las otras instrucciones.
      *                Shit yourself, little parrot.
      */
-
     uint16_t memptr;
 
     /* Algunos flags se precalculan para un tratamiento más rápido
@@ -179,10 +178,10 @@ private:
      * decreto. Si lo ponen a 1 por el mismo método basta con hacer un OR con
      * la máscara correspondiente.
      */
-    uint8_t sz53n_addTable[256];
-    uint8_t sz53pn_addTable[256];
-    uint8_t sz53n_subTable[256];
-    uint8_t sz53pn_subTable[256];
+    uint8_t sz53n_addTable[256] = {};
+    uint8_t sz53pn_addTable[256] = {};
+    uint8_t sz53n_subTable[256] = {};
+    uint8_t sz53pn_subTable[256] = {};
 
     // Un true en una dirección indica que se debe notificar que se va a
     // ejecutar la instrucción que está en esa direción.
@@ -370,6 +369,8 @@ public:
      bool isBreakpoint(uint16_t address);
      void setBreakpoint(uint16_t address, bool state);
      void resetBreakpoints(void);
+
+     void setExecDone(bool state);
 
 private:
     // Rota a la izquierda el valor del argumento

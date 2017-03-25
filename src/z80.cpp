@@ -13,10 +13,6 @@ Z80::Z80(Z80operations *ops) {
     bool evenBits;
 
     for (uint32_t idx = 0; idx < 256; idx++) {
-        sz53n_addTable[idx] = 0;
-        sz53pn_addTable[idx] =0;
-        sz53n_subTable[idx] = 0;
-        sz53pn_subTable[idx] = 0;
 
         if (idx > 0x7f) {
             sz53n_addTable[idx] |= SIGN_MASK;
@@ -1264,6 +1260,10 @@ void Z80::resetBreakpoints(void) {
     for (int i = 0; i < 0x10000; i++) {
         breakpointAt[i] = false;
     }
+}
+
+void Z80::setExecDone(bool state) {
+	execDone = state;
 }
 
 void Z80::execute(void) {

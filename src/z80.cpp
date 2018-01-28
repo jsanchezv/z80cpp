@@ -918,13 +918,13 @@ void Z80::execute(void) {
             decodeCB(opCode);
             break;
         case 0xDD:
-            regIX = decodeDDFD(opCode, regIX);
+            decodeDDFD(opCode, regIX);
             break;
         case 0xED:
             decodeED(opCode);
             break;
         case 0xFD:
-            regIY = decodeDDFD(opCode, regIY);
+            decodeDDFD(opCode, regIY);
             break;
         default:
             return;
@@ -3848,7 +3848,7 @@ void Z80::decodeCB(uint8_t opCode) {
  * Naturalmente, en una serie repetida de DDFD no hay que comprobar las
  * interrupciones entre cada prefijo.
  */
-RegisterPair Z80::decodeDDFD(uint8_t opCode, RegisterPair tmpIXY) {
+void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
     prefixOpcode = 0;
     switch (opCode) {
         case 0x09:
@@ -4418,7 +4418,6 @@ RegisterPair Z80::decodeDDFD(uint8_t opCode, RegisterPair tmpIXY) {
             break;
         }
     }
-    return tmpIXY;
 }
 
 // Subconjunto de instrucciones 0xDDCB

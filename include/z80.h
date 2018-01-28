@@ -498,7 +498,7 @@ private:
 
     //Subconjunto de instrucciones 0xDD / 0xFD
     // Decode DD/FD opcodes
-    RegisterPair decodeDDFD(uint8_t opCode, RegisterPair regIXY);
+    void decodeDDFD(uint8_t opCode, RegisterPair& regIXY);
 
     // Subconjunto de instrucciones 0xDD / 0xFD 0xCB
     // Decode DD / FD CB opcodes

@@ -34,10 +34,10 @@ uint16_t Z80sim::peek16(uint16_t address) {
     return (msb << 8) | lsb;
 }
 
-void Z80sim::poke16(uint16_t address, uint16_t word) {
+void Z80sim::poke16(uint16_t address, RegisterPair word) {
     // Order matters, first write lsb, then write msb, don't "optimize"
-    poke8(address, word);
-    poke8(address + 1, word >> 8);
+    poke8(address, word.byte8.lo);
+    poke8(address + 1, word.byte8.hi);
 }
 
 uint8_t Z80sim::inPort(uint16_t port) {
@@ -52,13 +52,18 @@ void Z80sim::outPort(uint16_t port, uint8_t value) {
     z80Ports[port] = value;
 }
 
-void Z80sim::addressOnBus(uint16_t address, uint32_t tstates) {
+void Z80sim::addressOnBus(uint16_t address, int32_t tstates) {
     // Additional clocks to be added on some instructions
     this->tstates += tstates;
 }
 
-void Z80sim::interruptHandlingTime(uint32_t tstates) {
+void Z80sim::interruptHandlingTime(int32_t tstates) {
     this->tstates += tstates;
+}
+
+bool Z80sim::isActiveINT(void) {
+	// Put here the needed logic to trigger an INT
+    return false;
 }
 
 void Z80sim::execDone(void) {}

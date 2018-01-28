@@ -10,9 +10,7 @@
 #ifndef Z80CPP_H
 #define Z80CPP_H
 
-#include <cstdint>
-
-#include "z80operations.h"
+#include <stdint.h>
 
 /* Union allowing a register pair to be accessed as bytes or as a word */
 typedef union {
@@ -27,6 +25,8 @@ typedef union {
 #endif
     uint16_t word;
 } RegisterPair;
+
+#include "z80operations.h"
 
 #define REG_B   regBC.byte8.hi
 #define REG_C   regBC.byte8.lo
@@ -61,6 +61,18 @@ typedef union {
 #define REG_Fx  regAFx.byte8.lo
 #define REG_AFx regAFx.word
 
+#define REG_PCh regPC.byte8.hi
+#define REG_PCl regPC.byte8.lo
+#define REG_PC  regPC.word
+
+#define REG_S   regSP.byte8.hi
+#define REG_P   regSP.byte8.lo
+#define REG_SP  regSP.word
+
+#define REG_W   memptr.byte8.hi
+#define REG_Z   memptr.byte8.lo
+#define REG_WZ  memptr.word
+
 class Z80 {
 public:
     // Modos de interrupción
@@ -69,8 +81,9 @@ public:
     };
 private:
     Z80operations *Z80opsImpl;
-    // Código de instrucción a ejecutar
-    uint8_t opCode;
+    // Se está ejecutando una instrucción prefijada con CB, DD, ED o FD
+    // Los valores permitidos son [0x00, 0xCB, 0xDD, 0xED, 0xFD]
+    uint8_t prefixOpcode = { 0x00 };
     // Subsistema de notificaciones
     bool execDone;
     // Posiciones de los flags
@@ -114,13 +127,13 @@ private:
 
     // Registros de propósito específico
     // *PC -- Program Counter -- 16 bits*
-    uint16_t regPC;
+    RegisterPair regPC;
     // *IX -- Registro de índice -- 16 bits*
     RegisterPair regIX;
     // *IY -- Registro de índice -- 16 bits*
     RegisterPair regIY;
     // *SP -- Stack Pointer -- 16 bits*
-    uint16_t regSP;
+    RegisterPair regSP;
     // *I -- Vector de interrupción -- 8 bits*
     uint8_t regI;
     // *R -- Refresco de memoria -- 7 bits*
@@ -135,10 +148,6 @@ private:
     bool pendingEI = false;
     // Estado de la línea NMI
     bool activeNMI = false;
-    // Si está activa la línea INT
-    // En el 48 y los +2a/+3 la línea INT se activa durante 32 ciclos de reloj
-    // En el 128 y +2, se activa 36 ciclos de reloj
-    volatile bool activeINT = false;
     // Modo de interrupción
     IntMode modeINT = IntMode::IM0;
     // halted == true cuando la CPU está ejecutando un HALT (28/03/2010)
@@ -165,7 +174,10 @@ private:
      *                registro en TODAS las otras instrucciones.
      *                Shit yourself, little parrot.
      */
-    uint16_t memptr;
+
+    RegisterPair memptr;
+    // I and R registers
+    inline RegisterPair getPairIR(void);
 
     /* Algunos flags se precalculan para un tratamiento más rápido
      * Concretamente, SIGN, ZERO, los bits 3, 5, PARITY y ADDSUB:
@@ -185,180 +197,173 @@ private:
 
     // Un true en una dirección indica que se debe notificar que se va a
     // ejecutar la instrucción que está en esa direción.
-    bool *breakpointAt;
+    bool *breakpointAt { nullptr };
 
 public:
     // Constructor de la clase
     Z80(Z80operations *ops);
+    ~Z80(void);
 
     // Acceso a registros de 8 bits
     // Access to 8-bit registers
-    uint8_t getRegA(void);
-    void setRegA(uint8_t value);
+    uint8_t getRegA(void) const { return regA; }
+    void setRegA(uint8_t value) { regA = value; }
 
-    uint8_t getRegB(void);
-    void setRegB(uint8_t value);
+    uint8_t getRegB(void) const { return REG_B; }
+    void setRegB(uint8_t value) { REG_B = value; }
 
-    uint8_t getRegC(void);
-    void setRegC(uint8_t value);
+    uint8_t getRegC(void) const { return REG_C; }
+    void setRegC(uint8_t value) { REG_C = value; }
 
-    uint8_t getRegD(void);
-    void setRegD(uint8_t value);
+    uint8_t getRegD(void) const { return REG_D; }
+    void setRegD(uint8_t value) { REG_D = value; }
 
-    uint8_t getRegE(void);
-    void setRegE(uint8_t value);
+    uint8_t getRegE(void) const { return REG_E; }
+    void setRegE(uint8_t value) { REG_E = value; }
 
-    uint8_t getRegH(void);
-    void setRegH(uint8_t value);
+    uint8_t getRegH(void) const { return REG_H; }
+    void setRegH(uint8_t value) { REG_H = value; }
 
-    uint8_t getRegL(void);
-    void setRegL(uint8_t value);
+    uint8_t getRegL(void) const { return REG_L; }
+    void setRegL(uint8_t value) { REG_L = value; }
 
     // Acceso a registros alternativos de 8 bits
     // Access to alternate 8-bit registers
-    uint8_t getRegAx(void);
-    void setRegAx(uint8_t value);
+    uint8_t getRegAx(void) const { return REG_Ax; }
+    void setRegAx(uint8_t value) { REG_Ax = value; }
 
-    uint8_t getRegFx(void);
-    void setRegFx(uint8_t value);
+    uint8_t getRegFx(void) const { return REG_Fx; }
+    void setRegFx(uint8_t value) { REG_Fx = value; }
 
-    uint8_t getRegBx(void);
-    void setRegBx(uint8_t value);
+    uint8_t getRegBx(void) const { return REG_Bx; }
+    void setRegBx(uint8_t value) { REG_Bx = value; }
 
-    uint8_t getRegCx(void);
-    void setRegCx(uint8_t value);
+    uint8_t getRegCx(void) const { return REG_Cx; }
+    void setRegCx(uint8_t value) { REG_Cx = value; }
 
-    uint8_t getRegDx(void);
-    void setRegDx(uint8_t value);
+    uint8_t getRegDx(void) const { return REG_Dx; }
+    void setRegDx(uint8_t value) { REG_Dx = value; }
 
-    uint8_t getRegEx(void);
-    void setRegEx(uint8_t value);
+    uint8_t getRegEx(void) const { return REG_Ex; }
+    void setRegEx(uint8_t value) { REG_Ex = value; }
 
-    uint8_t getRegHx(void);
-    void setRegHx(uint8_t value);
+    uint8_t getRegHx(void) const { return REG_Hx; }
+    void setRegHx(uint8_t value) { REG_Hx = value; }
 
-    uint8_t getRegLx(void);
-    void setRegLx(uint8_t value);
+    uint8_t getRegLx(void) const { return REG_Lx; }
+    void setRegLx(uint8_t value) { REG_Lx = value; }
 
     // Acceso a registros de 16 bits
     // Access to registers pairs
-    uint16_t getRegAF(void);
-    void setRegAF(uint16_t word);
+    uint16_t getRegAF(void) const { return (regA << 8) | (carryFlag ? sz5h3pnFlags | CARRY_MASK : sz5h3pnFlags); }
+    void setRegAF(uint16_t word) { regA = word >> 8; sz5h3pnFlags = word & 0xfe; carryFlag = (word & CARRY_MASK) != 0; }
 
-    uint16_t getRegAFx(void);
-    void setRegAFx(uint16_t word);
+    uint16_t getRegAFx(void) const { return REG_AFx; }
+    void setRegAFx(uint16_t word) { REG_AFx = word; }
 
-    uint16_t getRegBC(void);
-    void setRegBC(uint16_t word);
+    uint16_t getRegBC(void) const { return REG_BC; }
+    void setRegBC(uint16_t word) { REG_BC = word; }
 
-    uint16_t getRegBCx(void);
-    void setRegBCx(uint16_t word);
+    uint16_t getRegBCx(void) const { return REG_BCx; }
+    void setRegBCx(uint16_t word) { REG_BCx = word; }
 
-    uint16_t getRegDE(void);
-    void setRegDE(uint16_t word);
+    uint16_t getRegDE(void) const { return REG_DE; }
+    void setRegDE(uint16_t word) { REG_DE = word; }
 
-    uint16_t getRegDEx(void);
-    void setRegDEx(uint16_t word);
+    uint16_t getRegDEx(void) const { return REG_DEx; }
+    void setRegDEx(uint16_t word) { REG_DEx = word; }
 
-    uint16_t getRegHL(void);
-    void setRegHL(uint16_t word);
+    uint16_t getRegHL(void) const { return REG_HL; }
+    void setRegHL(uint16_t word) { REG_HL = word; }
 
-    uint16_t getRegHLx(void);
-    void setRegHLx(uint16_t word);
+    uint16_t getRegHLx(void) const { return REG_HLx; }
+    void setRegHLx(uint16_t word) { REG_HLx = word; }
 
     // Acceso a registros de propósito específico
     // Access to special purpose registers
-    uint16_t getRegPC(void);
-    void setRegPC(uint16_t address);
+    uint16_t getRegPC(void) const { return REG_PC; }
+    void setRegPC(uint16_t address) { REG_PC = address; }
 
-    uint16_t getRegSP(void);
-    void setRegSP(uint16_t word);
+    uint16_t getRegSP(void) const { return REG_SP; }
+    void setRegSP(uint16_t word) { REG_SP = word; }
 
-    uint16_t getRegIX(void);
-    void setRegIX(uint16_t word);
+    uint16_t getRegIX(void) const { return REG_IX; }
+    void setRegIX(uint16_t word) { REG_IX = word; }
 
-    uint16_t getRegIY(void);
-    void setRegIY(uint16_t word);
+    uint16_t getRegIY(void) const { return REG_IY; }
+    void setRegIY(uint16_t word) { REG_IY = word; }
 
-    uint8_t getRegI(void);
-    void setRegI(uint8_t value);
+    uint8_t getRegI(void) const { return regI; }
+    void setRegI(uint8_t value) { regI = value; }
 
-    uint8_t getRegR(void);
-    void setRegR(uint8_t value);
-
-    // I and R registers
-    uint16_t getPairIR(void);
+    uint8_t getRegR(void) const { return regRbit7 ? regR | SIGN_MASK : regR & 0x7f; }
+    void setRegR(uint8_t value) { regR = value & 0x7f; regRbit7 = (value > 0x7f); }
 
     // Acceso al registro oculto MEMPTR
     // Hidden register MEMPTR (known as WZ at Zilog doc?)
-    uint16_t getMemPtr(void);
-    void setMemPtr(uint16_t word);
+    uint16_t getMemPtr(void) const { return REG_WZ; }
+    void setMemPtr(uint16_t word) { REG_WZ = word; }
 
     // Acceso a los flags uno a uno
     // Access to single flags from F register
-    bool isCarryFlag(void);
-    void setCarryFlag(bool state);
+    bool isCarryFlag(void) const { return carryFlag; }
+    void setCarryFlag(bool state) { carryFlag = state; }
 
-    bool isAddSubFlag(void);
+    bool isAddSubFlag(void) const { return (sz5h3pnFlags & ADDSUB_MASK) != 0; }
     void setAddSubFlag(bool state);
 
-    bool isParOverFlag(void);
+    bool isParOverFlag(void) const { return (sz5h3pnFlags & PARITY_MASK) != 0; }
     void setParOverFlag(bool state);
 
     /* Undocumented flag */
-    bool isBit3Flag(void);
+    bool isBit3Flag(void) const { return (sz5h3pnFlags & BIT3_MASK) != 0; }
     void setBit3Fag(bool state);
 
-    bool isHalfCarryFlag(void);
+    bool isHalfCarryFlag(void) const { return (sz5h3pnFlags & HALFCARRY_MASK) != 0; }
     void setHalfCarryFlag(bool state);
 
     /* Undocumented flag */
-    bool isBit5Flag(void);
+    bool isBit5Flag(void) const { return (sz5h3pnFlags & BIT5_MASK) != 0; }
     void setBit5Flag(bool state);
 
-    bool isZeroFlag(void);
+    bool isZeroFlag(void) const { return (sz5h3pnFlags & ZERO_MASK) != 0; }
     void setZeroFlag(bool state);
 
-    bool isSignFlag(void);
+    bool isSignFlag(void) const { return sz5h3pnFlags >= SIGN_MASK; }
     void setSignFlag(bool state);
 
     // Acceso a los flags F
     // Access to F register
-    uint8_t getFlags(void);
-    void setFlags(uint8_t regF);
+    uint8_t getFlags(void) const { return carryFlag ? sz5h3pnFlags | CARRY_MASK : sz5h3pnFlags; }
+    void setFlags(uint8_t regF) { sz5h3pnFlags = regF & 0xfe; carryFlag = (regF & CARRY_MASK) != 0; }
 
     // Acceso a los flip-flops de interrupción
     // Interrupt flip-flops
-    bool isIFF1(void);
-    void setIFF1(bool state);
+    bool isIFF1(void) const { return ffIFF1; }
+    void setIFF1(bool state) { ffIFF1 = state; }
 
-    bool isIFF2(void);
+    bool isIFF2(void) const { return ffIFF2; }
+    void setIFF2(bool state) { ffIFF2 = state; }
 
-    void setIFF2(bool state);
+    bool isNMI(void) const { return activeNMI; }
+    void setNMI(bool nmi) { activeNMI = nmi; }
 
-    bool isNMI(void);
-    void setNMI(bool nmi);
-
-    // La línea de NMI se activa por impulso, no por nivel
-    void triggerNMI(void);
-
-    // La línea INT se activa por nivel
-    bool isINTLine(void);
-    void setINTLine(bool intLine);
+    // /NMI is negative level triggered.
+    void triggerNMI(void) { activeNMI = true; }
 
     //Acceso al modo de interrupción
     // Maskable interrupt mode
-    IntMode getIM(void);
-    void setIM(IntMode mode);
+    IntMode getIM(void) const { return modeINT; }
+    void setIM(IntMode mode) { modeINT = mode; }
 
-    bool isHalted(void);
-    void setHalted(bool state);
+    bool isHalted(void) const { return halted; }
+    void setHalted(bool state) { halted = state; }
 
     // Reset requested by /RESET signal (not power-on)
-    void setPinReset(void);
+    void setPinReset(void) { pinReset = true; }
 
-    bool isPendingEI(void);
-    void setPendingEI(bool state);
+    bool isPendingEI(void) const { return pendingEI; }
+    void setPendingEI(bool state) { pendingEI = state; }
 
     // Reset
     void reset(void);
@@ -366,90 +371,90 @@ public:
     // Execute one instruction
     void execute(void);
 
-     bool isBreakpoint(uint16_t address);
-     void setBreakpoint(uint16_t address, bool state);
-     void resetBreakpoints(void);
+    bool isBreakpoint(uint16_t address) const { return breakpointAt[address & 0xffff]; }
+    void setBreakpoint(uint16_t address, bool state) { breakpointAt[address] = state; }
+    void resetBreakpoints(void);
 
-     void setExecDone(bool state);
+    void setExecDone(bool status) { execDone = status; }
 
 private:
     // Rota a la izquierda el valor del argumento
-    uint8_t rlc(uint8_t oper8);
+    inline uint8_t rlc(uint8_t oper8);
 
     // Rota a la izquierda el valor del argumento
-    uint8_t rl(uint8_t oper8);
+    inline uint8_t rl(uint8_t oper8);
 
     // Rota a la izquierda el valor del argumento
-    uint8_t sla(uint8_t oper8);
+    inline uint8_t sla(uint8_t oper8);
 
     // Rota a la izquierda el valor del argumento (como sla salvo por el bit 0)
-    uint8_t sll(uint8_t oper8);
+    inline uint8_t sll(uint8_t oper8);
 
     // Rota a la derecha el valor del argumento
-    uint8_t rrc(uint8_t oper8);
+    inline uint8_t rrc(uint8_t oper8);
 
     // Rota a la derecha el valor del argumento
-    uint8_t rr(uint8_t oper8);
+    inline uint8_t rr(uint8_t oper8);
 
     // Rota a la derecha 1 bit el valor del argumento
-    uint8_t sra(uint8_t oper8);
+    inline uint8_t sra(uint8_t oper8);
 
     // Rota a la derecha 1 bit el valor del argumento
-    uint8_t srl(uint8_t oper8);
+    inline uint8_t srl(uint8_t oper8);
 
     // Incrementa un valor de 8 bits modificando los flags oportunos
-    uint8_t inc8(uint8_t oper8);
+    inline uint8_t inc8(uint8_t oper8);
 
     // Decrementa un valor de 8 bits modificando los flags oportunos
-    uint8_t dec8(uint8_t oper8);
+    inline uint8_t dec8(uint8_t oper8);
 
     // Suma de 8 bits afectando a los flags
-    void add(uint8_t oper8);
+    inline void add(uint8_t oper8);
 
     // Suma con acarreo de 8 bits
-    void adc(uint8_t oper8);
+    inline void adc(uint8_t oper8);
 
     // Suma dos operandos de 16 bits sin carry afectando a los flags
-    uint16_t add16(uint16_t reg16, uint16_t oper16);
+    inline uint16_t add16(uint16_t reg16, uint16_t oper16);
 
     // Suma con acarreo de 16 bits
-    void adc16(uint16_t reg16);
+    inline void adc16(uint16_t reg16);
 
     // Resta de 8 bits
-    void sub(uint8_t oper8);
+    inline void sub(uint8_t oper8);
 
     // Resta con acarreo de 8 bits
-    void sbc(uint8_t oper8);
+    inline void sbc(uint8_t oper8);
 
     // Resta con acarreo de 16 bits
-    void sbc16(uint16_t reg16);
+    inline void sbc16(uint16_t reg16);
 
     // Operación AND lógica
     // Simple 'and' is C++ reserved keyword
-    void and_(uint8_t oper8);
+    inline void and_(uint8_t oper8);
 
     // Operación XOR lógica
     // Simple 'xor' is C++ reserved keyword
-    void xor_(uint8_t oper8);
+    inline void xor_(uint8_t oper8);
 
     // Operación OR lógica
     // Simple 'or' is C++ reserved keyword
-    void or_(uint8_t oper8);
+    inline void or_(uint8_t oper8);
 
     // Operación de comparación con el registro A
     // es como SUB, pero solo afecta a los flags
     // Los flags SIGN y ZERO se calculan a partir del resultado
     // Los flags 3 y 5 se copian desde el operando (sigh!)
-    void cp(uint8_t oper8);
+    inline void cp(uint8_t oper8);
 
     // DAA
-    void daa(void);
+    inline void daa(void);
 
     // POP
-    uint16_t pop(void);
+    inline uint16_t pop(void);
 
     // PUSH
-    void push(uint16_t word);
+    inline void push(uint16_t word);
 
     // LDI
     void ldi(void);
@@ -476,7 +481,7 @@ private:
     void outd(void);
 
     // BIT n,r
-    void bit(uint8_t mask, uint8_t reg);
+    inline void bit(uint8_t mask, uint8_t reg);
 
     //Interrupción
     void interrupt(void);
@@ -489,11 +494,11 @@ private:
 
     // Subconjunto de instrucciones 0xCB
     // decode CBXX opcodes
-    void decodeCB(void);
+    void decodeCB(uint8_t opCode);
 
     //Subconjunto de instrucciones 0xDD / 0xFD
     // Decode DD/FD opcodes
-    RegisterPair decodeDDFD(RegisterPair regIXY);
+    RegisterPair decodeDDFD(uint8_t opCode, RegisterPair regIXY);
 
     // Subconjunto de instrucciones 0xDD / 0xFD 0xCB
     // Decode DD / FD CB opcodes
@@ -501,6 +506,6 @@ private:
 
     //Subconjunto de instrucciones 0xED
     // Decode EDXX opcodes
-    void decodeED(void);
+    void decodeED(uint8_t opCode);
 };
 #endif // Z80CPP_H

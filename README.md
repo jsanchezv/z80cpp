@@ -1,5 +1,5 @@
 ## z80cpp
-####Z80 core in C++
+#### Z80 core in C++
 
 That's a port from Java to C++ of my [Z80Core](https://github.com/jsanchezv/Z80Core).
 
@@ -18,6 +18,6 @@ The core have the same features of [Z80Core](https://github.com/jsanchezv/Z80Cor
 * Emulates the undocumented bits 3 & 5 from flags register
 * Emulates the MEMPTR register (known as WZ in official Zilog documentation)
 * Strict execution order for every instruction
-* Precise timing for instructions, totally decoupled from the core
+* Precise timing for all instructions, totally decoupled from the core
 
 *jspeccy at gmail dot com*

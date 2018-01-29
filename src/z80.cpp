@@ -899,7 +899,7 @@ void Z80::resetBreakpoints(void) {
 
 void Z80::execute(void) {
 
-    uint8_t opCode = Z80opsImpl->fetchOpcode(REG_PC);
+    opCode = Z80opsImpl->fetchOpcode(REG_PC);
     regR++;
 
     if (prefixOpcode == 0 &&  breakpointAt[REG_PC]) {
@@ -910,12 +910,12 @@ void Z80::execute(void) {
 
     flagQ = false;
 
+    // El prefijo 0xCB no cuenta para esta guerra.
+    // En CBxx todas las xx producen un código válido
+    // de instrucción, incluyendo CBCB.
     switch (prefixOpcode) {
         case 0x00:
             decodeOpcode(opCode);
-            break;
-        case 0xCB:
-            decodeCB(opCode);
             break;
         case 0xDD:
             decodeDDFD(opCode, regIX);
@@ -2117,7 +2117,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         }
         case 0xCB:
         { /* Subconjunto de instrucciones */
-            prefixOpcode = 0xCB;
+            decodeCB();
             break;
         }
         case 0xCC:
@@ -2480,8 +2480,11 @@ void Z80::decodeOpcode(uint8_t opCode) {
 
 //Subconjunto de instrucciones 0xCB
 
-void Z80::decodeCB(uint8_t opCode) {
-    prefixOpcode = 0;
+void Z80::decodeCB(void) {
+    uint8_t opCode = Z80opsImpl->fetchOpcode(REG_PC);
+    REG_PC++;
+    regR++;
+
     switch (opCode) {
         case 0x00:
         { /* RLC B */
@@ -6363,9 +6366,6 @@ void Z80::decodeED(uint8_t opCode) {
             }
             break;
         }
-        case 0xCB:
-            prefixOpcode = 0xCB;
-            break;
         case 0xDD:
             prefixOpcode = 0xDD;
             break;

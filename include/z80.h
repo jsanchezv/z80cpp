@@ -81,8 +81,15 @@ public:
     };
 private:
     Z80operations *Z80opsImpl;
-    // Se está ejecutando una instrucción prefijada con CB, DD, ED o FD
-    // Los valores permitidos son [0x00, 0xCB, 0xDD, 0xED, 0xFD]
+    // Código de instrucción a ejecutar
+    // Poner esta variable como local produce peor rendimiento
+    // ZEXALL test: (local) 1:54 vs 1:47 (visitante)
+    uint8_t opCode;
+    // Se está ejecutando una instrucción prefijada con DD, ED o FD
+    // Los valores permitidos son [0x00, 0xDD, 0xED, 0xFD]
+    // El prefijo 0xCB queda al margen porque, detrás de 0xCB, siempre
+    // viene un código de instrucción válido, tanto si delante va un
+    // 0xDD o 0xFD como si no.
     uint8_t prefixOpcode = { 0x00 };
     // Subsistema de notificaciones
     bool execDone;
@@ -494,7 +501,7 @@ private:
 
     // Subconjunto de instrucciones 0xCB
     // decode CBXX opcodes
-    void decodeCB(uint8_t opCode);
+    void decodeCB(void);
 
     //Subconjunto de instrucciones 0xDD / 0xFD
     // Decode DD/FD opcodes

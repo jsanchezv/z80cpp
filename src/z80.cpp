@@ -941,21 +941,24 @@ void Z80::execute(void) {
         pendingEI = false;
     }
 
+    if (execDone) {
+        Z80opsImpl->execDone();
+    }
+
     // Primero se comprueba NMI
+    // Si se activa NMI no se comprueba INT porque la siguiente
+    // instrucción debe ser la de 0x0066.
     if (activeNMI) {
         activeNMI = false;
         lastFlagQ = false;
         nmi();
+        return;
     }
 
     // Ahora se comprueba si está activada la señal INT
     if (ffIFF1 && !pendingEI && Z80opsImpl->isActiveINT()) {
         lastFlagQ = false;
         interrupt();
-    }
-
-    if (execDone) {
-        Z80opsImpl->execDone();
     }
 }
 

@@ -1205,7 +1205,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         case 0x22:
         { /* LD (nn),HL */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ, regHL);
+            Z80opsImpl->poke16(REG_WZ, REG_HL);
             REG_WZ++;
             REG_PC = REG_PC + 2;
             break;
@@ -3878,7 +3878,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         case 0x22:
         { /* LD (nn),IX */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ++, tmpIXY);
+            Z80opsImpl->poke16(REG_WZ++, tmpIXY.word);
             REG_PC = REG_PC + 2;
             break;
         }
@@ -5927,7 +5927,7 @@ void Z80::decodeED(uint8_t opCode) {
         case 0x43:
         { /* LD (nn),BC */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ, regBC);
+            Z80opsImpl->poke16(REG_WZ, REG_BC);
             REG_WZ++;
             REG_PC = REG_PC + 2;
             break;
@@ -6042,7 +6042,7 @@ void Z80::decodeED(uint8_t opCode) {
         case 0x53:
         { /* LD (nn),DE */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ++, regDE);
+            Z80opsImpl->poke16(REG_WZ++, REG_DE);
             REG_PC = REG_PC + 2;
             break;
         }
@@ -6130,7 +6130,7 @@ void Z80::decodeED(uint8_t opCode) {
         case 0x63:
         { /* LD (nn),HL */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ++, regHL);
+            Z80opsImpl->poke16(REG_WZ++, REG_HL);
             REG_PC = REG_PC + 2;
             break;
         }
@@ -6220,7 +6220,7 @@ void Z80::decodeED(uint8_t opCode) {
         case 0x73:
         { /* LD (nn),SP */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ++, regSP);
+            Z80opsImpl->poke16(REG_WZ++, REG_SP);
             REG_PC = REG_PC + 2;
             break;
         }

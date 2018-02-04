@@ -12,6 +12,7 @@ CMake Binary=/usr/bin/cmake
 Environment Profile=
 Extra Arguments=VERBOSE=1
 Install Directory=
+Runtime=Sistema anfitrión
 
 [CustomDefinesAndIncludes][ProjectPath0]
 Path=.

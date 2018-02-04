@@ -18,7 +18,7 @@ public:
 
     /* Read/Write word from/to RAM */
    virtual uint16_t peek16(uint16_t adddress) = 0;
-   virtual void poke16(uint16_t address, RegisterPair word) = 0;
+   virtual void poke16(uint16_t address, uint16_t word) = 0;
 
     /* In/Out byte from/to IO Bus */
     virtual uint8_t inPort(uint16_t port) = 0;

@@ -861,8 +861,12 @@ void Z80::interrupt(void) {
     regR++;
     ffIFF1 = ffIFF2 = false;
     push(REG_PC); // el push añadirá 6 t-estados (+contended si toca)
+
+	uint8_t value = Z80opsImpl->interrupt_value();
     if (modeINT == IntMode::IM2) {
-        REG_PC = Z80opsImpl->peek16((regI << 8) | 0xff); // +6 t-estados
+        REG_PC = Z80opsImpl->peek16((regI << 8) | value); // +6 t-estados
+    } else if (modeINT == IntMode::IM0){
+		decodeOpcode(value);
     } else {
         REG_PC = 0x0038;
     }

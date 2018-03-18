@@ -66,6 +66,12 @@ bool Z80sim::isActiveINT(void) {
     return false;
 }
 
+uint8_t Z80sim::interrupt_value(void) {
+	// Put here the value of the acknowledged interrupt
+	// Use logic to decide what device to acknowledge and fetch the value
+    return 0;
+}
+
 void Z80sim::execDone(void) {}
 
 uint8_t Z80sim::breakpoint(uint16_t address, uint8_t opcode) {

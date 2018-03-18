@@ -33,6 +33,8 @@ public:
     /* Callback to know when the INT signal is active */
     virtual bool isActiveINT(void) = 0;
 
+    virtual uint8_t interrupt_value() = 0;
+
     /* Callback for notify at PC address */
     virtual uint8_t breakpoint(uint16_t address, uint8_t opcode) = 0;
 

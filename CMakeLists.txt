@@ -7,9 +7,7 @@ set (VERSION_MINOR 0)
 set (RELEASE_TYPE "")
 set (VERSION_STR "${API_REVISION}.${VERSION_MAJOR}.${VERSION_MINOR}${RELEASE_TYPE}")
 
-if (CMAKE_COMPILER_IS_GNUCXX)
-    set (CMAKE_CXX_FLAGS "-Wall -O3 -std=c++14")
-endif ()
+set (CMAKE_CXX_FLAGS "-Wall -O3")
 
 include_directories(BEFORE . include)
 

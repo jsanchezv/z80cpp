@@ -30,6 +30,7 @@ public:
     void addressOnBus(uint16_t address, int32_t tstates) override;
     void interruptHandlingTime(int32_t tstates) override;
     bool isActiveINT(void) override;
+    uint8_t interrupt_value(void) override;
     uint8_t breakpoint(uint16_t address, uint8_t opcode) override;
     void execDone(void) override;
 

@@ -53,9 +53,9 @@ typedef union {
 #define REG_IXl regIX.byte8.lo
 #define REG_IX  regIX.word
 
-#define REG_IYh regHL.byte8.hi
-#define REG_IYl regHL.byte8.lo
-#define REG_IY  regHL.word
+#define REG_IYh regIY.byte8.hi
+#define REG_IYl regIY.byte8.lo
+#define REG_IY  regIY.word
 
 #define REG_Ax  regAFx.byte8.hi
 #define REG_Fx  regAFx.byte8.lo

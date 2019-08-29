@@ -388,34 +388,34 @@ public:
 
 private:
     // Rota a la izquierda el valor del argumento
-    inline uint8_t rlc(uint8_t oper8);
+    inline void rlc(uint8_t &oper8);
 
     // Rota a la izquierda el valor del argumento
-    inline uint8_t rl(uint8_t oper8);
+    inline void rl(uint8_t &oper8);
 
     // Rota a la izquierda el valor del argumento
-    inline uint8_t sla(uint8_t oper8);
+    inline void sla(uint8_t &oper8);
 
     // Rota a la izquierda el valor del argumento (como sla salvo por el bit 0)
-    inline uint8_t sll(uint8_t oper8);
+    inline void sll(uint8_t &oper8);
 
     // Rota a la derecha el valor del argumento
-    inline uint8_t rrc(uint8_t oper8);
+    inline void rrc(uint8_t &oper8);
 
     // Rota a la derecha el valor del argumento
-    inline uint8_t rr(uint8_t oper8);
+    inline void rr(uint8_t &oper8);
 
     // Rota a la derecha 1 bit el valor del argumento
-    inline uint8_t sra(uint8_t oper8);
+    inline void sra(uint8_t &oper8);
 
     // Rota a la derecha 1 bit el valor del argumento
-    inline uint8_t srl(uint8_t oper8);
+    inline void srl(uint8_t &oper8);
 
     // Incrementa un valor de 8 bits modificando los flags oportunos
-    inline uint8_t inc8(uint8_t oper8);
+    inline void inc8(uint8_t &oper8);
 
     // Decrementa un valor de 8 bits modificando los flags oportunos
-    inline uint8_t dec8(uint8_t oper8);
+    inline void dec8(uint8_t &oper8);
 
     // Suma de 8 bits afectando a los flags
     inline void add(uint8_t oper8);
@@ -424,7 +424,7 @@ private:
     inline void adc(uint8_t oper8);
 
     // Suma dos operandos de 16 bits sin carry afectando a los flags
-    inline uint16_t add16(uint16_t reg16, uint16_t oper16);
+    inline void add16(RegisterPair &reg16, uint16_t oper16);
 
     // Suma con acarreo de 16 bits
     inline void adc16(uint16_t reg16);

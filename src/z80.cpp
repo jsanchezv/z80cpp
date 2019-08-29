@@ -918,12 +918,15 @@ void Z80::execute(void) {
             decodeOpcode(opCode);
             break;
         case 0xDD:
+            prefixOpcode = 0;
             decodeDDFD(opCode, regIX);
             break;
         case 0xED:
+            prefixOpcode = 0;
             decodeED(opCode);
             break;
         case 0xFD:
+            prefixOpcode = 0;
             decodeDDFD(opCode, regIY);
             break;
         default:
@@ -2273,7 +2276,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         }
         case 0xDD:
         { /* Subconjunto de instrucciones */
-            prefixOpcode = 0xDD;
+            decodeDDFD(opCode, regIX);
             break;
         }
         case 0xDE:
@@ -2377,7 +2380,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
             REG_PC = REG_PC + 2;
             break;
         case 0xED: /*Subconjunto de instrucciones*/
-            prefixOpcode = 0xED;
+            decodeED(opCode);
             break;
         case 0xEE: /* XOR n */
             xor_(Z80opsImpl->peek8(REG_PC));
@@ -2464,7 +2467,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
             REG_PC = REG_PC + 2;
             break;
         case 0xFD: /* Subconjunto de instrucciones */
-            prefixOpcode = 0xFD;
+            decodeDDFD(opCode, regIY);
             break;
         case 0xFE: /* CP n */
             cp(Z80opsImpl->peek8(REG_PC));
@@ -3851,7 +3854,6 @@ void Z80::decodeCB(void) {
  * interrupciones entre cada prefijo.
  */
 void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
-    prefixOpcode = 0;
     switch (opCode) {
         case 0x09:
         { /* ADD IX,BC */
@@ -5896,7 +5898,6 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
 //Subconjunto de instrucciones 0xED
 
 void Z80::decodeED(uint8_t opCode) {
-    prefixOpcode = 0;
     switch (opCode) {
         case 0x40:
         { /* IN B,(C) */

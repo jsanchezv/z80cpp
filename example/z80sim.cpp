@@ -34,10 +34,10 @@ uint16_t Z80sim::peek16(uint16_t address) {
     return (msb << 8) | lsb;
 }
 
-void Z80sim::poke16(uint16_t address, uint16_t word) {
+void Z80sim::poke16(uint16_t address, RegisterPair word) {
     // Order matters, first write lsb, then write msb, don't "optimize"
-    poke8(address, word);
-    poke8(address + 1, word >> 8);
+    poke8(address, word.byte8.lo);
+    poke8(address + 1, word.byte8.hi);
 }
 
 uint8_t Z80sim::inPort(uint16_t port) {

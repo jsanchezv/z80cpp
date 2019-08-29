@@ -1196,7 +1196,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         case 0x22:
         { /* LD (nn),HL */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ, REG_HL);
+            Z80opsImpl->poke16(REG_WZ, regHL);
             REG_WZ++;
             REG_PC = REG_PC + 2;
             break;
@@ -3855,93 +3855,93 @@ void Z80::decodeCB(void) {
  * Naturalmente, en una serie repetida de DDFD no hay que comprobar las
  * interrupciones entre cada prefijo.
  */
-void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
+void Z80::decodeDDFD(uint8_t opCode, RegisterPair& regIXY) {
     switch (opCode) {
         case 0x09:
         { /* ADD IX,BC */
             Z80opsImpl->addressOnBus(getPairIR().word, 7);
-            add16(tmpIXY, REG_BC);
+            add16(regIXY, REG_BC);
             break;
         }
         case 0x19:
         { /* ADD IX,DE */
             Z80opsImpl->addressOnBus(getPairIR().word, 7);
-            add16(tmpIXY, REG_DE);
+            add16(regIXY, REG_DE);
             break;
         }
         case 0x21:
         { /* LD IX,nn */
-            tmpIXY.word = Z80opsImpl->peek16(REG_PC);
+            regIXY.word = Z80opsImpl->peek16(REG_PC);
             REG_PC = REG_PC + 2;
             break;
         }
         case 0x22:
         { /* LD (nn),IX */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ++, tmpIXY.word);
+            Z80opsImpl->poke16(REG_WZ++, regIXY);
             REG_PC = REG_PC + 2;
             break;
         }
         case 0x23:
         { /* INC IX */
             Z80opsImpl->addressOnBus(getPairIR().word, 2);
-            tmpIXY.word++;
+            regIXY.word++;
             break;
         }
         case 0x24:
         { /* INC IXh */
-            inc8(tmpIXY.byte8.hi);
+            inc8(regIXY.byte8.hi);
             break;
         }
         case 0x25:
         { /* DEC IXh */
-            dec8(tmpIXY.byte8.hi);
+            dec8(regIXY.byte8.hi);
             break;
         }
         case 0x26:
         { /* LD IXh,n */
-            tmpIXY.byte8.hi = Z80opsImpl->peek8(REG_PC);
+            regIXY.byte8.hi = Z80opsImpl->peek8(REG_PC);
             REG_PC++;
             break;
         }
         case 0x29:
         { /* ADD IX,IX */
             Z80opsImpl->addressOnBus(getPairIR().word, 7);
-            add16(tmpIXY, tmpIXY.word);
+            add16(regIXY, regIXY.word);
             break;
         }
         case 0x2A:
         { /* LD IX,(nn) */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            tmpIXY.word = Z80opsImpl->peek16(REG_WZ++);
+            regIXY.word = Z80opsImpl->peek16(REG_WZ++);
             REG_PC = REG_PC + 2;
             break;
         }
         case 0x2B:
         { /* DEC IX */
             Z80opsImpl->addressOnBus(getPairIR().word, 2);
-            tmpIXY.word--;
+            regIXY.word--;
             break;
         }
         case 0x2C:
         { /* INC IXl */
-            inc8(tmpIXY.byte8.lo);
+            inc8(regIXY.byte8.lo);
             break;
         }
         case 0x2D:
         { /* DEC IXl */
-            dec8(tmpIXY.byte8.lo);
+            dec8(regIXY.byte8.lo);
             break;
         }
         case 0x2E:
         { /* LD IXl,n */
-            tmpIXY.byte8.lo = Z80opsImpl->peek8(REG_PC);
+            regIXY.byte8.lo = Z80opsImpl->peek8(REG_PC);
             REG_PC++;
             break;
         }
         case 0x34:
         { /* INC (IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             uint8_t work8 = Z80opsImpl->peek8(REG_WZ);
@@ -3952,7 +3952,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x35:
         { /* DEC (IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             uint8_t work8 = Z80opsImpl->peek8(REG_WZ);
@@ -3963,7 +3963,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x36:
         { /* LD (IX+d),n */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             REG_PC++;
             uint8_t work8 = Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 2);
@@ -3974,22 +3974,22 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         case 0x39:
         { /* ADD IX,SP */
             Z80opsImpl->addressOnBus(getPairIR().word, 7);
-            add16(tmpIXY, REG_SP);
+            add16(regIXY, REG_SP);
             break;
         }
         case 0x44:
         { /* LD B,IXh */
-            REG_B = tmpIXY.byte8.hi;
+            REG_B = regIXY.byte8.hi;
             break;
         }
         case 0x45:
         { /* LD B,IXl */
-            REG_B = tmpIXY.byte8.lo;
+            REG_B = regIXY.byte8.lo;
             break;
         }
         case 0x46:
         { /* LD B,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             REG_B = Z80opsImpl->peek8(REG_WZ);
@@ -3997,17 +3997,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x4C:
         { /* LD C,IXh */
-            REG_C = tmpIXY.byte8.hi;
+            REG_C = regIXY.byte8.hi;
             break;
         }
         case 0x4D:
         { /* LD C,IXl */
-            REG_C = tmpIXY.byte8.lo;
+            REG_C = regIXY.byte8.lo;
             break;
         }
         case 0x4E:
         { /* LD C,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             REG_C = Z80opsImpl->peek8(REG_WZ);
@@ -4015,17 +4015,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x54:
         { /* LD D,IXh */
-            REG_D = tmpIXY.byte8.hi;
+            REG_D = regIXY.byte8.hi;
             break;
         }
         case 0x55:
         { /* LD D,IXl */
-            REG_D = tmpIXY.byte8.lo;
+            REG_D = regIXY.byte8.lo;
             break;
         }
         case 0x56:
         { /* LD D,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             REG_D = Z80opsImpl->peek8(REG_WZ);
@@ -4033,17 +4033,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x5C:
         { /* LD E,IXh */
-            REG_E = tmpIXY.byte8.hi;
+            REG_E = regIXY.byte8.hi;
             break;
         }
         case 0x5D:
         { /* LD E,IXl */
-            REG_E = tmpIXY.byte8.lo;
+            REG_E = regIXY.byte8.lo;
             break;
         }
         case 0x5E:
         { /* LD E,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             REG_E = Z80opsImpl->peek8(REG_WZ);
@@ -4051,22 +4051,22 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x60:
         { /* LD IXh,B */
-            tmpIXY.byte8.hi = REG_B;
+            regIXY.byte8.hi = REG_B;
             break;
         }
         case 0x61:
         { /* LD IXh,C */
-            tmpIXY.byte8.hi = REG_C;
+            regIXY.byte8.hi = REG_C;
             break;
         }
         case 0x62:
         { /* LD IXh,D */
-            tmpIXY.byte8.hi = REG_D;
+            regIXY.byte8.hi = REG_D;
             break;
         }
         case 0x63:
         { /* LD IXh,E */
-            tmpIXY.byte8.hi = REG_E;
+            regIXY.byte8.hi = REG_E;
             break;
         }
         case 0x64:
@@ -4075,12 +4075,12 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x65:
         { /* LD IXh,IXl */
-            tmpIXY.byte8.hi = tmpIXY.byte8.lo;
+            regIXY.byte8.hi = regIXY.byte8.lo;
             break;
         }
         case 0x66:
         { /* LD H,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             REG_H = Z80opsImpl->peek8(REG_WZ);
@@ -4088,32 +4088,32 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x67:
         { /* LD IXh,A */
-            tmpIXY.byte8.hi = regA;
+            regIXY.byte8.hi = regA;
             break;
         }
         case 0x68:
         { /* LD IXl,B */
-            tmpIXY.byte8.lo = REG_B;
+            regIXY.byte8.lo = REG_B;
             break;
         }
         case 0x69:
         { /* LD IXl,C */
-            tmpIXY.byte8.lo = REG_C;
+            regIXY.byte8.lo = REG_C;
             break;
         }
         case 0x6A:
         { /* LD IXl,D */
-            tmpIXY.byte8.lo = REG_D;
+            regIXY.byte8.lo = REG_D;
             break;
         }
         case 0x6B:
         { /* LD IXl,E */
-            tmpIXY.byte8.lo = REG_E;
+            regIXY.byte8.lo = REG_E;
             break;
         }
         case 0x6C:
         { /* LD IXl,IXh */
-            tmpIXY.byte8.lo = tmpIXY.byte8.hi;
+            regIXY.byte8.lo = regIXY.byte8.hi;
             break;
         }
         case 0x6D:
@@ -4122,7 +4122,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x6E:
         { /* LD L,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             REG_L = Z80opsImpl->peek8(REG_WZ);
@@ -4130,12 +4130,12 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x6F:
         { /* LD IXl,A */
-            tmpIXY.byte8.lo = regA;
+            regIXY.byte8.lo = regA;
             break;
         }
         case 0x70:
         { /* LD (IX+d),B */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             Z80opsImpl->poke8(REG_WZ, REG_B);
@@ -4143,7 +4143,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x71:
         { /* LD (IX+d),C */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             Z80opsImpl->poke8(REG_WZ, REG_C);
@@ -4151,7 +4151,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x72:
         { /* LD (IX+d),D */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             Z80opsImpl->poke8(REG_WZ, REG_D);
@@ -4159,7 +4159,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x73:
         { /* LD (IX+d),E */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             Z80opsImpl->poke8(REG_WZ, REG_E);
@@ -4167,7 +4167,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x74:
         { /* LD (IX+d),H */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             Z80opsImpl->poke8(REG_WZ, REG_H);
@@ -4175,7 +4175,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x75:
         { /* LD (IX+d),L */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             Z80opsImpl->poke8(REG_WZ, REG_L);
@@ -4183,7 +4183,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x77:
         { /* LD (IX+d),A */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             Z80opsImpl->poke8(REG_WZ, regA);
@@ -4191,17 +4191,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x7C:
         { /* LD A,IXh */
-            regA = tmpIXY.byte8.hi;
+            regA = regIXY.byte8.hi;
             break;
         }
         case 0x7D:
         { /* LD A,IXl */
-            regA = tmpIXY.byte8.lo;
+            regA = regIXY.byte8.lo;
             break;
         }
         case 0x7E:
         { /* LD A,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             regA = Z80opsImpl->peek8(REG_WZ);
@@ -4209,17 +4209,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x84:
         { /* ADD A,IXh */
-            add(tmpIXY.byte8.hi);
+            add(regIXY.byte8.hi);
             break;
         }
         case 0x85:
         { /* ADD A,IXl */
-            add(tmpIXY.byte8.lo);
+            add(regIXY.byte8.lo);
             break;
         }
         case 0x86:
         { /* ADD A,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             add(Z80opsImpl->peek8(REG_WZ));
@@ -4227,17 +4227,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x8C:
         { /* ADC A,IXh */
-            adc(tmpIXY.byte8.hi);
+            adc(regIXY.byte8.hi);
             break;
         }
         case 0x8D:
         { /* ADC A,IXl */
-            adc(tmpIXY.byte8.lo);
+            adc(regIXY.byte8.lo);
             break;
         }
         case 0x8E:
         { /* ADC A,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             adc(Z80opsImpl->peek8(REG_WZ));
@@ -4245,17 +4245,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x94:
         { /* SUB IXh */
-            sub(tmpIXY.byte8.hi);
+            sub(regIXY.byte8.hi);
             break;
         }
         case 0x95:
         { /* SUB IXl */
-            sub(tmpIXY.byte8.lo);
+            sub(regIXY.byte8.lo);
             break;
         }
         case 0x96:
         { /* SUB (IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             sub(Z80opsImpl->peek8(REG_WZ));
@@ -4263,17 +4263,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0x9C:
         { /* SBC A,IXh */
-            sbc(tmpIXY.byte8.hi);
+            sbc(regIXY.byte8.hi);
             break;
         }
         case 0x9D:
         { /* SBC A,IXl */
-            sbc(tmpIXY.byte8.lo);
+            sbc(regIXY.byte8.lo);
             break;
         }
         case 0x9E:
         { /* SBC A,(IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             sbc(Z80opsImpl->peek8(REG_WZ));
@@ -4281,17 +4281,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0xA4:
         { /* AND IXh */
-            and_(tmpIXY.byte8.hi);
+            and_(regIXY.byte8.hi);
             break;
         }
         case 0xA5:
         { /* AND IXl */
-            and_(tmpIXY.byte8.lo);
+            and_(regIXY.byte8.lo);
             break;
         }
         case 0xA6:
         { /* AND (IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             and_(Z80opsImpl->peek8(REG_WZ));
@@ -4299,17 +4299,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0xAC:
         { /* XOR IXh */
-            xor_(tmpIXY.byte8.hi);
+            xor_(regIXY.byte8.hi);
             break;
         }
         case 0xAD:
         { /* XOR IXl */
-            xor_(tmpIXY.byte8.lo);
+            xor_(regIXY.byte8.lo);
             break;
         }
         case 0xAE:
         { /* XOR (IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             xor_(Z80opsImpl->peek8(REG_WZ));
@@ -4317,17 +4317,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0xB4:
         { /* OR IXh */
-            or_(tmpIXY.byte8.hi);
+            or_(regIXY.byte8.hi);
             break;
         }
         case 0xB5:
         { /* OR IXl */
-            or_(tmpIXY.byte8.lo);
+            or_(regIXY.byte8.lo);
             break;
         }
         case 0xB6:
         { /* OR (IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             or_(Z80opsImpl->peek8(REG_WZ));
@@ -4335,17 +4335,17 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0xBC:
         { /* CP IXh */
-            cp(tmpIXY.byte8.hi);
+            cp(regIXY.byte8.hi);
             break;
         }
         case 0xBD:
         { /* CP IXl */
-            cp(tmpIXY.byte8.lo);
+            cp(regIXY.byte8.lo);
             break;
         }
         case 0xBE:
         { /* CP (IX+d) */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC++;
             cp(Z80opsImpl->peek8(REG_WZ));
@@ -4353,7 +4353,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         }
         case 0xCB:
         { /* Subconjunto de instrucciones */
-            REG_WZ = tmpIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
+            REG_WZ = regIXY.word + (int8_t) Z80opsImpl->peek8(REG_PC);
             REG_PC++;
             opCode = Z80opsImpl->peek8(REG_PC);
             Z80opsImpl->addressOnBus(REG_PC, 2);
@@ -4366,32 +4366,32 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
             break;
         case 0xE1:
         { /* POP IX */
-            tmpIXY.word = pop();
+            regIXY.word = pop();
             break;
         }
         case 0xE3:
         { /* EX (SP),IX */
             // Instrucción de ejecución sutil como pocas... atento al dato.
-            RegisterPair work16 = tmpIXY;
-            tmpIXY.word = Z80opsImpl->peek16(REG_SP);
+            RegisterPair work16 = regIXY;
+            regIXY.word = Z80opsImpl->peek16(REG_SP);
             Z80opsImpl->addressOnBus(REG_SP + 1, 1);
             // I can't call to poke16 from here because the Z80 do the writes in inverted order
             // Same for EX (SP), HL
             Z80opsImpl->poke8(REG_SP + 1, work16.byte8.hi);
             Z80opsImpl->poke8(REG_SP, work16.byte8.lo);
             Z80opsImpl->addressOnBus(REG_SP, 2);
-            REG_WZ = tmpIXY.word;
+            REG_WZ = regIXY.word;
             break;
         }
         case 0xE5:
         { /* PUSH IX */
             Z80opsImpl->addressOnBus(getPairIR().word, 1);
-            push(tmpIXY.word);
+            push(regIXY.word);
             break;
         }
         case 0xE9:
         { /* JP (IX) */
-            REG_PC = tmpIXY.word;
+            REG_PC = regIXY.word;
             break;
         }
         case 0xED:
@@ -4402,7 +4402,7 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& tmpIXY) {
         case 0xF9:
         { /* LD SP,IX */
             Z80opsImpl->addressOnBus(getPairIR().word, 2);
-            REG_SP = tmpIXY.word;
+            REG_SP = regIXY.word;
             break;
         }
         case 0xFD:
@@ -5992,7 +5992,7 @@ void Z80::decodeED(uint8_t opCode) {
         case 0x43:
         { /* LD (nn),BC */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ, REG_BC);
+            Z80opsImpl->poke16(REG_WZ, regBC);
             REG_WZ++;
             REG_PC = REG_PC + 2;
             break;
@@ -6107,7 +6107,7 @@ void Z80::decodeED(uint8_t opCode) {
         case 0x53:
         { /* LD (nn),DE */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ++, REG_DE);
+            Z80opsImpl->poke16(REG_WZ++, regDE);
             REG_PC = REG_PC + 2;
             break;
         }
@@ -6195,7 +6195,7 @@ void Z80::decodeED(uint8_t opCode) {
         case 0x63:
         { /* LD (nn),HL */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ++, REG_HL);
+            Z80opsImpl->poke16(REG_WZ++, regHL);
             REG_PC = REG_PC + 2;
             break;
         }
@@ -6285,7 +6285,7 @@ void Z80::decodeED(uint8_t opCode) {
         case 0x73:
         { /* LD (nn),SP */
             REG_WZ = Z80opsImpl->peek16(REG_PC);
-            Z80opsImpl->poke16(REG_WZ++, REG_SP);
+            Z80opsImpl->poke16(REG_WZ++, regSP);
             REG_PC = REG_PC + 2;
             break;
         }

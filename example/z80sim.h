@@ -24,7 +24,7 @@ public:
     uint8_t peek8(uint16_t address) override;
     void poke8(uint16_t address, uint8_t value) override;
     uint16_t peek16(uint16_t address) override;
-    void poke16(uint16_t address, uint16_t word) override;
+    void poke16(uint16_t address, RegisterPair word) override;
     uint8_t inPort(uint16_t port) override;
     void outPort(uint16_t port, uint8_t value) override;
     void addressOnBus(uint16_t address, int32_t tstates) override;

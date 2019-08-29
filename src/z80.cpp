@@ -908,7 +908,7 @@ void Z80::execute(void) {
 
     REG_PC++;
 
-    flagQ = false;
+    flagQ = pendingEI = false;
 
     // El prefijo 0xCB no cuenta para esta guerra.
     // En CBxx todas las xx producen un código válido
@@ -934,12 +934,6 @@ void Z80::execute(void) {
         return;
 
     lastFlagQ = flagQ;
-
-    // Si está pendiente la activación de la interrupciones y el
-    // código que se acaba de ejecutar no es el propio EI
-    if (pendingEI && opCode != 0xFB) {
-        pendingEI = false;
-    }
 
     if (execDone) {
         Z80opsImpl->execDone();

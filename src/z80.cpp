@@ -4467,7 +4467,7 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
         case 0x04:
         { /* RLC (IX+d),H */
             REG_H = Z80opsImpl->peek8(address);
-            rlc(REG_E);
+            rlc(REG_H);
             Z80opsImpl->addressOnBus(address, 1);
             Z80opsImpl->poke8(address, REG_H);
             break;

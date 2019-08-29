@@ -935,9 +935,11 @@ void Z80::execute(void) {
 
     lastFlagQ = flagQ;
 
+#ifdef WITH_EXEC_DONE
     if (execDone) {
         Z80opsImpl->execDone();
     }
+#endif
 
     // Primero se comprueba NMI
     // Si se activa NMI no se comprueba INT porque la siguiente

@@ -66,7 +66,9 @@ bool Z80sim::isActiveINT(void) {
     return false;
 }
 
+#ifdef WITH_EXEC_DONE
 void Z80sim::execDone(void) {}
+#endif
 
 uint8_t Z80sim::breakpoint(uint16_t address, uint8_t opcode) {
     // Emulate CP/M Syscall at address 5

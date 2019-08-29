@@ -382,7 +382,9 @@ public:
     void setBreakpoint(uint16_t address, bool state) { breakpointAt[address] = state; }
     void resetBreakpoints(void);
 
+#ifdef WITH_EXEC_DONE
     void setExecDone(bool status) { execDone = status; }
+#endif
 
 private:
     // Rota a la izquierda el valor del argumento

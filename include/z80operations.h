@@ -36,8 +36,10 @@ public:
     /* Callback for notify at PC address */
     virtual uint8_t breakpoint(uint16_t address, uint8_t opcode) = 0;
 
+#ifdef WITH_EXEC_DONE
     /* Callback to notify that one instruction has ended */
     virtual void execDone(void) = 0;
+#endif
 };
 
 #endif // Z80OPERATIONS_H

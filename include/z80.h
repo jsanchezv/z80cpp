@@ -205,6 +205,7 @@ private:
     // Un true en una dirección indica que se debe notificar que se va a
     // ejecutar la instrucción que está en esa direción.
     bool *breakpointAt { nullptr };
+    void copyToRegister(uint8_t opCode, uint8_t value);
 
 public:
     // Constructor de la clase

@@ -2270,6 +2270,8 @@ void Z80::decodeOpcode(uint8_t opCode) {
         }
         case 0xDD:
         { /* Subconjunto de instrucciones */
+            opCode = Z80opsImpl->fetchOpcode(REG_PC++);
+            regR++;
             decodeDDFD(opCode, regIX);
             break;
         }
@@ -2374,6 +2376,8 @@ void Z80::decodeOpcode(uint8_t opCode) {
             REG_PC = REG_PC + 2;
             break;
         case 0xED: /*Subconjunto de instrucciones*/
+            opCode = Z80opsImpl->fetchOpcode(REG_PC++);
+            regR++;
             decodeED(opCode);
             break;
         case 0xEE: /* XOR n */
@@ -2461,6 +2465,8 @@ void Z80::decodeOpcode(uint8_t opCode) {
             REG_PC = REG_PC + 2;
             break;
         case 0xFD: /* Subconjunto de instrucciones */
+            opCode = Z80opsImpl->fetchOpcode(REG_PC++);
+            regR++;
             decodeDDFD(opCode, regIY);
             break;
         case 0xFE: /* CP n */
@@ -2477,8 +2483,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
 //Subconjunto de instrucciones 0xCB
 
 void Z80::decodeCB(void) {
-    uint8_t opCode = Z80opsImpl->fetchOpcode(REG_PC);
-    REG_PC++;
+    uint8_t opCode = Z80opsImpl->fetchOpcode(REG_PC++);
     regR++;
 
     switch (opCode) {

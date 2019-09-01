@@ -900,13 +900,12 @@ void Z80::execute(void) {
 
     REG_PC++;
 
-    flagQ = pendingEI = false;
-
     // El prefijo 0xCB no cuenta para esta guerra.
     // En CBxx todas las xx producen un código válido
     // de instrucción, incluyendo CBCB.
     switch (prefixOpcode) {
         case 0x00:
+            flagQ = pendingEI = false;
             decodeOpcode(opCode);
             break;
         case 0xDD:

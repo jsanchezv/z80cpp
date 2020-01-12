@@ -1,6 +1,16 @@
 cmake_minimum_required (VERSION 2.8)
 project (z80cpp)
 
+# Set the rpath policy and C++ version for MacOS builds
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # set the RPATH policy
+    set(CMAKE_MACOSX_RPATH 1)
+
+    # specify the C++ standard
+    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD_REQUIRED True)
+endif()
+
 set (API_REVISION 1)
 set (VERSION_MAJOR 0)
 set (VERSION_MINOR 0)

@@ -1,3 +1,9 @@
+# By default, CMake generates standard UNIX makefiles.  To generate an XCode
+# project on MacOS, invoke CMake from the build directory as shown below:
+#
+#   cmake -G Xcode ..
+#
+
 cmake_minimum_required (VERSION 2.8)
 project (z80cpp)
 
@@ -23,7 +29,7 @@ endif ()
 
 include_directories(BEFORE . include)
 
-set (z80cpp_sources src/z80.cpp)
+set (z80cpp_sources src/z80.cpp include/z80.h include/z80operations.h )
 add_library (z80cpp-static STATIC ${z80cpp_sources})
 set_target_properties (z80cpp-static PROPERTIES OUTPUT_NAME z80cpp)
 if (NOT DEFINED Z80CPP_STATIC_ONLY)
@@ -49,5 +55,15 @@ endif ()
 if (NOT DEFINED Z80CPP_STATIC_ONLY)
     install (TARGETS z80cpp LIBRARY DESTINATION ${LIB_DIR} ARCHIVE DESTINATION ${LIB_DIR})
 endif ()
-install (TARGETS z80cpp-static LIBRARY DESTINATION ${LIB_DIR} ARCHIVE DESTINATION ${LIB_DIR})
-install (DIRECTORY include/ DESTINATION include/z80cpp PATTERN "*.h" )
+
+# Enable running the test simulator as part the `make test` target
+set( TEST_SOURCES example/z80sim.cpp example/z80sim.h )
+add_executable( z80sim ${TEST_SOURCES} )
+target_link_libraries( z80sim z80cpp-static )
+configure_file( example/zexall.bin zexall.bin COPYONLY )
+
+enable_testing( ) 
+add_test( NAME z80sim COMMAND z80sim )
+
+install( TARGETS z80cpp-static LIBRARY DESTINATION ${LIB_DIR} ARCHIVE DESTINATION ${LIB_DIR} )
+install( DIRECTORY include/ DESTINATION include/z80cpp PATTERN "*.h" )

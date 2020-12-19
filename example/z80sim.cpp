@@ -12,7 +12,14 @@ Z80sim::~Z80sim() {}
 uint8_t Z80sim::fetchOpcode(uint16_t address) {
     // 3 clocks to fetch opcode from RAM and 1 execution clock
     tstates += 4;
+
+#ifdef WITH_BREAKPOINT_SUPPORT
     return z80Ram[address];
+#else
+    uint8_t opcode = z80Ram[address];
+    return (address != 0x0005 ? opcode : breakpoint(address, opcode));
+#endif
+
 }
 
 uint8_t Z80sim::peek8(uint16_t address) {
@@ -72,6 +79,12 @@ void Z80sim::execDone(void) {}
 
 uint8_t Z80sim::breakpoint(uint16_t address, uint8_t opcode) {
     // Emulate CP/M Syscall at address 5
+
+#ifdef WITH_BREAKPOINT_SUPPORT
+    if (address != 0x0005)
+         return opcode;
+#endif
+
     switch (cpu.getRegC()) {
         case 0: // BDOS 0 System Reset
         {
@@ -117,6 +130,10 @@ void Z80sim::runTest(std::ifstream* f) {
     f->read((char *) &z80Ram[0x100], size);
     f->close();
 
+#ifdef WITH_BREAKPOINT_SUPPORT
+    cpu.setBreakpoint(true);
+#endif
+
     cpu.reset();
     finish = false;
 
@@ -125,7 +142,6 @@ void Z80sim::runTest(std::ifstream* f) {
     z80Ram[2] = 0x01; // JP 0x100 CP/M TPA
     z80Ram[5] = (uint8_t) 0xC9; // Return from BDOS call
 
-    cpu.setBreakpoint(0x0005, true);
     while (!finish) {
         cpu.execute();
     }

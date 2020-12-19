@@ -807,7 +807,7 @@ void Z80::outd(void) {
  * 04/12/08 Confirmado el comentario anterior:
  *          http://scratchpad.wikia.com/wiki/Z80
  */
-void Z80::bit(uint8_t mask, uint8_t reg) {
+void Z80::bitTest(uint8_t mask, uint8_t reg) {
     bool zeroFlag = (mask & reg) == 0;
 
     sz5h3pnFlags = (sz53n_addTable[reg] & ~FLAG_SZP_MASK) | HALFCARRY_MASK;
@@ -2825,338 +2825,338 @@ void Z80::decodeCB(void) {
         }
         case 0x40:
         { /* BIT 0,B */
-            bit(0x01, REG_B);
+            bitTest(0x01, REG_B);
             break;
         }
         case 0x41:
         { /* BIT 0,C */
-            bit(0x01, REG_C);
+            bitTest(0x01, REG_C);
             break;
         }
         case 0x42:
         { /* BIT 0,D */
-            bit(0x01, REG_D);
+            bitTest(0x01, REG_D);
             break;
         }
         case 0x43:
         { /* BIT 0,E */
-            bit(0x01, REG_E);
+            bitTest(0x01, REG_E);
             break;
         }
         case 0x44:
         { /* BIT 0,H */
-            bit(0x01, REG_H);
+            bitTest(0x01, REG_H);
             break;
         }
         case 0x45:
         { /* BIT 0,L */
-            bit(0x01, REG_L);
+            bitTest(0x01, REG_L);
             break;
         }
         case 0x46:
         { /* BIT 0,(HL) */
-            bit(0x01, Z80opsImpl->peek8(REG_HL));
+            bitTest(0x01, Z80opsImpl->peek8(REG_HL));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK) | (REG_W & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(REG_HL, 1);
             break;
         }
         case 0x47:
         { /* BIT 0,A */
-            bit(0x01, regA);
+            bitTest(0x01, regA);
             break;
         }
         case 0x48:
         { /* BIT 1,B */
-            bit(0x02, REG_B);
+            bitTest(0x02, REG_B);
             break;
         }
         case 0x49:
         { /* BIT 1,C */
-            bit(0x02, REG_C);
+            bitTest(0x02, REG_C);
             break;
         }
         case 0x4A:
         { /* BIT 1,D */
-            bit(0x02, REG_D);
+            bitTest(0x02, REG_D);
             break;
         }
         case 0x4B:
         { /* BIT 1,E */
-            bit(0x02, REG_E);
+            bitTest(0x02, REG_E);
             break;
         }
         case 0x4C:
         { /* BIT 1,H */
-            bit(0x02, REG_H);
+            bitTest(0x02, REG_H);
             break;
         }
         case 0x4D:
         { /* BIT 1,L */
-            bit(0x02, REG_L);
+            bitTest(0x02, REG_L);
             break;
         }
         case 0x4E:
         { /* BIT 1,(HL) */
-            bit(0x02, Z80opsImpl->peek8(REG_HL));
+            bitTest(0x02, Z80opsImpl->peek8(REG_HL));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK) | (REG_W & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(REG_HL, 1);
             break;
         }
         case 0x4F:
         { /* BIT 1,A */
-            bit(0x02, regA);
+            bitTest(0x02, regA);
             break;
         }
         case 0x50:
         { /* BIT 2,B */
-            bit(0x04, REG_B);
+            bitTest(0x04, REG_B);
             break;
         }
         case 0x51:
         { /* BIT 2,C */
-            bit(0x04, REG_C);
+            bitTest(0x04, REG_C);
             break;
         }
         case 0x52:
         { /* BIT 2,D */
-            bit(0x04, REG_D);
+            bitTest(0x04, REG_D);
             break;
         }
         case 0x53:
         { /* BIT 2,E */
-            bit(0x04, REG_E);
+            bitTest(0x04, REG_E);
             break;
         }
         case 0x54:
         { /* BIT 2,H */
-            bit(0x04, REG_H);
+            bitTest(0x04, REG_H);
             break;
         }
         case 0x55:
         { /* BIT 2,L */
-            bit(0x04, REG_L);
+            bitTest(0x04, REG_L);
             break;
         }
         case 0x56:
         { /* BIT 2,(HL) */
-            bit(0x04, Z80opsImpl->peek8(REG_HL));
+            bitTest(0x04, Z80opsImpl->peek8(REG_HL));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK) | (REG_W & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(REG_HL, 1);
             break;
         }
         case 0x57:
         { /* BIT 2,A */
-            bit(0x04, regA);
+            bitTest(0x04, regA);
             break;
         }
         case 0x58:
         { /* BIT 3,B */
-            bit(0x08, REG_B);
+            bitTest(0x08, REG_B);
             break;
         }
         case 0x59:
         { /* BIT 3,C */
-            bit(0x08, REG_C);
+            bitTest(0x08, REG_C);
             break;
         }
         case 0x5A:
         { /* BIT 3,D */
-            bit(0x08, REG_D);
+            bitTest(0x08, REG_D);
             break;
         }
         case 0x5B:
         { /* BIT 3,E */
-            bit(0x08, REG_E);
+            bitTest(0x08, REG_E);
             break;
         }
         case 0x5C:
         { /* BIT 3,H */
-            bit(0x08, REG_H);
+            bitTest(0x08, REG_H);
             break;
         }
         case 0x5D:
         { /* BIT 3,L */
-            bit(0x08, REG_L);
+            bitTest(0x08, REG_L);
             break;
         }
         case 0x5E:
         { /* BIT 3,(HL) */
-            bit(0x08, Z80opsImpl->peek8(REG_HL));
+            bitTest(0x08, Z80opsImpl->peek8(REG_HL));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK) | (REG_W & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(REG_HL, 1);
             break;
         }
         case 0x5F:
         { /* BIT 3,A */
-            bit(0x08, regA);
+            bitTest(0x08, regA);
             break;
         }
         case 0x60:
         { /* BIT 4,B */
-            bit(0x10, REG_B);
+            bitTest(0x10, REG_B);
             break;
         }
         case 0x61:
         { /* BIT 4,C */
-            bit(0x10, REG_C);
+            bitTest(0x10, REG_C);
             break;
         }
         case 0x62:
         { /* BIT 4,D */
-            bit(0x10, REG_D);
+            bitTest(0x10, REG_D);
             break;
         }
         case 0x63:
         { /* BIT 4,E */
-            bit(0x10, REG_E);
+            bitTest(0x10, REG_E);
             break;
         }
         case 0x64:
         { /* BIT 4,H */
-            bit(0x10, REG_H);
+            bitTest(0x10, REG_H);
             break;
         }
         case 0x65:
         { /* BIT 4,L */
-            bit(0x10, REG_L);
+            bitTest(0x10, REG_L);
             break;
         }
         case 0x66:
         { /* BIT 4,(HL) */
-            bit(0x10, Z80opsImpl->peek8(REG_HL));
+            bitTest(0x10, Z80opsImpl->peek8(REG_HL));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK) | (REG_W & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(REG_HL, 1);
             break;
         }
         case 0x67:
         { /* BIT 4,A */
-            bit(0x10, regA);
+            bitTest(0x10, regA);
             break;
         }
         case 0x68:
         { /* BIT 5,B */
-            bit(0x20, REG_B);
+            bitTest(0x20, REG_B);
             break;
         }
         case 0x69:
         { /* BIT 5,C */
-            bit(0x20, REG_C);
+            bitTest(0x20, REG_C);
             break;
         }
         case 0x6A:
         { /* BIT 5,D */
-            bit(0x20, REG_D);
+            bitTest(0x20, REG_D);
             break;
         }
         case 0x6B:
         { /* BIT 5,E */
-            bit(0x20, REG_E);
+            bitTest(0x20, REG_E);
             break;
         }
         case 0x6C:
         { /* BIT 5,H */
-            bit(0x20, REG_H);
+            bitTest(0x20, REG_H);
             break;
         }
         case 0x6D:
         { /* BIT 5,L */
-            bit(0x20, REG_L);
+            bitTest(0x20, REG_L);
             break;
         }
         case 0x6E:
         { /* BIT 5,(HL) */
-            bit(0x20, Z80opsImpl->peek8(REG_HL));
+            bitTest(0x20, Z80opsImpl->peek8(REG_HL));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK) | (REG_W & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(REG_HL, 1);
             break;
         }
         case 0x6F:
         { /* BIT 5,A */
-            bit(0x20, regA);
+            bitTest(0x20, regA);
             break;
         }
         case 0x70:
         { /* BIT 6,B */
-            bit(0x40, REG_B);
+            bitTest(0x40, REG_B);
             break;
         }
         case 0x71:
         { /* BIT 6,C */
-            bit(0x40, REG_C);
+            bitTest(0x40, REG_C);
             break;
         }
         case 0x72:
         { /* BIT 6,D */
-            bit(0x40, REG_D);
+            bitTest(0x40, REG_D);
             break;
         }
         case 0x73:
         { /* BIT 6,E */
-            bit(0x40, REG_E);
+            bitTest(0x40, REG_E);
             break;
         }
         case 0x74:
         { /* BIT 6,H */
-            bit(0x40, REG_H);
+            bitTest(0x40, REG_H);
             break;
         }
         case 0x75:
         { /* BIT 6,L */
-            bit(0x40, REG_L);
+            bitTest(0x40, REG_L);
             break;
         }
         case 0x76:
         { /* BIT 6,(HL) */
-            bit(0x40, Z80opsImpl->peek8(REG_HL));
+            bitTest(0x40, Z80opsImpl->peek8(REG_HL));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK) | (REG_W & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(REG_HL, 1);
             break;
         }
         case 0x77:
         { /* BIT 6,A */
-            bit(0x40, regA);
+            bitTest(0x40, regA);
             break;
         }
         case 0x78:
         { /* BIT 7,B */
-            bit(0x80, REG_B);
+            bitTest(0x80, REG_B);
             break;
         }
         case 0x79:
         { /* BIT 7,C */
-            bit(0x80, REG_C);
+            bitTest(0x80, REG_C);
             break;
         }
         case 0x7A:
         { /* BIT 7,D */
-            bit(0x80, REG_D);
+            bitTest(0x80, REG_D);
             break;
         }
         case 0x7B:
         { /* BIT 7,E */
-            bit(0x80, REG_E);
+            bitTest(0x80, REG_E);
             break;
         }
         case 0x7C:
         { /* BIT 7,H */
-            bit(0x80, REG_H);
+            bitTest(0x80, REG_H);
             break;
         }
         case 0x7D:
         { /* BIT 7,L */
-            bit(0x80, REG_L);
+            bitTest(0x80, REG_L);
             break;
         }
         case 0x7E:
         { /* BIT 7,(HL) */
-            bit(0x80, Z80opsImpl->peek8(REG_HL));
+            bitTest(0x80, Z80opsImpl->peek8(REG_HL));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK) | (REG_W & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(REG_HL, 1);
             break;
         }
         case 0x7F:
         { /* BIT 7,A */
-            bit(0x80, regA);
+            bitTest(0x80, regA);
             break;
         }
         case 0x80:
@@ -4566,7 +4566,7 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
         case 0x46:
         case 0x47:
         { /* BIT 0,(IX+d) */
-            bit(0x01, Z80opsImpl->peek8(address));
+            bitTest(0x01, Z80opsImpl->peek8(address));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK)
                     | ((address >> 8) & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(address, 1);
@@ -4581,7 +4581,7 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
         case 0x4E:
         case 0x4F:
         { /* BIT 1,(IX+d) */
-            bit(0x02, Z80opsImpl->peek8(address));
+            bitTest(0x02, Z80opsImpl->peek8(address));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK)
                     | ((address >> 8) & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(address, 1);
@@ -4596,7 +4596,7 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
         case 0x56:
         case 0x57:
         { /* BIT 2,(IX+d) */
-            bit(0x04, Z80opsImpl->peek8(address));
+            bitTest(0x04, Z80opsImpl->peek8(address));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK)
                     | ((address >> 8) & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(address, 1);
@@ -4611,7 +4611,7 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
         case 0x5E:
         case 0x5F:
         { /* BIT 3,(IX+d) */
-            bit(0x08, Z80opsImpl->peek8(address));
+            bitTest(0x08, Z80opsImpl->peek8(address));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK)
                     | ((address >> 8) & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(address, 1);
@@ -4626,7 +4626,7 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
         case 0x66:
         case 0x67:
         { /* BIT 4,(IX+d) */
-            bit(0x10, Z80opsImpl->peek8(address));
+            bitTest(0x10, Z80opsImpl->peek8(address));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK)
                     | ((address >> 8) & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(address, 1);
@@ -4641,7 +4641,7 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
         case 0x6E:
         case 0x6F:
         { /* BIT 5,(IX+d) */
-            bit(0x20, Z80opsImpl->peek8(address));
+            bitTest(0x20, Z80opsImpl->peek8(address));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK)
                     | ((address >> 8) & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(address, 1);
@@ -4656,7 +4656,7 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
         case 0x76:
         case 0x77:
         { /* BIT 6,(IX+d) */
-            bit(0x40, Z80opsImpl->peek8(address));
+            bitTest(0x40, Z80opsImpl->peek8(address));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK)
                     | ((address >> 8) & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(address, 1);
@@ -4671,7 +4671,7 @@ void Z80::decodeDDFDCB(uint8_t opCode, uint16_t address) {
         case 0x7E:
         case 0x7F:
         { /* BIT 7,(IX+d) */
-            bit(0x80, Z80opsImpl->peek8(address));
+            bitTest(0x80, Z80opsImpl->peek8(address));
             sz5h3pnFlags = (sz5h3pnFlags & FLAG_SZHP_MASK)
                     | ((address >> 8) & FLAG_53_MASK);
             Z80opsImpl->addressOnBus(address, 1);

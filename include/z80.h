@@ -494,7 +494,7 @@ private:
     void outd(void);
 
     // BIT n,r
-    inline void bit(uint8_t mask, uint8_t reg);
+    inline void bitTest(uint8_t mask, uint8_t reg);
 
     //Interrupción
     void interrupt(void);

@@ -137,7 +137,8 @@ void Z80::reset(void) {
         pinReset = false;
     } else {
         regA = 0xff;
-        setFlags(0xff);
+        
+        setFlags(0xfd); // The only one flag reset at cold start is the add/sub flag
 
         REG_AFx = 0xffff;
         REG_BC = REG_BCx = 0xffff;

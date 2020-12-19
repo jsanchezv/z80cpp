@@ -44,14 +44,11 @@ Z80::Z80(Z80operations *ops) {
 
     Z80opsImpl = ops;
     execDone = false;
-    breakpointAt = new bool[65536];
-    resetBreakpoints();
     reset();
 }
 
 Z80::~Z80(void)
 {
-    delete[] breakpointAt;
 }
 
 RegisterPair Z80::getPairIR(void) {
@@ -883,21 +880,16 @@ void Z80::nmi(void) {
     REG_PC = REG_WZ = 0x0066;
 }
 
-void Z80::resetBreakpoints(void) {
-    for (int i = 0; i < 0x10000; i++) {
-        breakpointAt[i] = false;
-    }
-}
-
 void Z80::execute(void) {
 
     opCode = Z80opsImpl->fetchOpcode(REG_PC);
     regR++;
 
-    if (prefixOpcode == 0 && breakpointAt[REG_PC]) {
+#ifdef WITH_BREAKPOINT_SUPPORT
+    if (breakpointEnabled && prefixOpcode == 0) {
         opCode = Z80opsImpl->breakpoint(REG_PC, opCode);
     }
-
+#endif
     REG_PC++;
 
     // El prefijo 0xCB no cuenta para esta guerra.
@@ -4421,11 +4413,11 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& regIXY) {
             // IX o IY. Se trata como si fuera un código normal.
             // Sin esto, además de emular mal, falla el test
             // ld <bcdexya>,<bcdexya> de ZEXALL.
-
-            if (breakpointAt[REG_PC]) {
+#ifdef WITH_BREAKPOINT_SUPPORT
+            if (breakpointEnabled && prefixOpcode == 0) {
                 opCode = Z80opsImpl->breakpoint(REG_PC, opCode);
             }
-
+#endif
             decodeOpcode(opCode);
             break;
         }

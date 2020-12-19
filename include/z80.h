@@ -204,7 +204,9 @@ private:
 
     // Un true en una dirección indica que se debe notificar que se va a
     // ejecutar la instrucción que está en esa direción.
-    bool *breakpointAt { nullptr };
+#ifdef WITH_BREAKPOINT_SUPPORT
+    bool breakpointEnabled {false};
+#endif
     void copyToRegister(uint8_t opCode, uint8_t value);
 
 public:
@@ -379,9 +381,10 @@ public:
     // Execute one instruction
     void execute(void);
 
-    bool isBreakpoint(uint16_t address) const { return breakpointAt[address & 0xffff]; }
-    void setBreakpoint(uint16_t address, bool state) { breakpointAt[address] = state; }
-    void resetBreakpoints(void);
+#ifdef WITH_BREAKPOINT_SUPPORT
+    bool isBreakpoint(void) { return breakpointEnabled; }
+    void setBreakpoint(bool state) { breakpointEnabled = state; }
+#endif
 
 #ifdef WITH_EXEC_DONE
     void setExecDone(bool status) { execDone = status; }

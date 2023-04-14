@@ -47,11 +47,9 @@ Z80::Z80(Z80operations *ops) {
     reset();
 }
 
-Z80::~Z80(void)
-{
-}
+Z80::~Z80() = default;
 
-RegisterPair Z80::getPairIR(void) {
+RegisterPair Z80::getPairIR() const {
     RegisterPair IR;
     IR.byte8.hi = regI;
     IR.byte8.lo = regR & 0x7f;
@@ -132,7 +130,7 @@ void Z80::setSignFlag(bool state) {
  *             modelo Zilog Z8400APS. Z80A CPU.
  *             http://www.worldofspectrum.org/forums/showthread.php?t=34574
  */
-void Z80::reset(void) {
+void Z80::reset() {
     if (pinReset) {
         pinReset = false;
     } else {
@@ -294,7 +292,6 @@ void Z80::inc8(uint8_t &oper8) {
     }
 
     flagQ = true;
-    return;
 }
 
 // Decrementa un valor de 8 bits modificando los flags oportunos
@@ -312,7 +309,6 @@ void Z80::dec8(uint8_t &oper8) {
     }
 
     flagQ = true;
-    return;
 }
 
 // Suma de 8 bits afectando a los flags
@@ -376,7 +372,6 @@ void Z80::add16(RegisterPair &reg16, uint16_t oper16) {
     }
 
     flagQ = true;
-    return;
 }
 
 // Suma con acarreo de 16 bits
@@ -411,7 +406,7 @@ void Z80::adc16(uint16_t reg16) {
 
 // Resta de 8 bits
 void Z80::sub(uint8_t oper8) {
-    int16_t res = regA - oper8;
+    auto res = static_cast<int16_t>(regA - oper8);
 
     carryFlag = res < 0;
     res &= 0xff;
@@ -434,7 +429,7 @@ void Z80::sub(uint8_t oper8) {
 
 // Resta con acarreo de 8 bits
 void Z80::sbc(uint8_t oper8) {
-    int16_t res = regA - oper8;
+    auto res = static_cast<int16_t>(regA - oper8);
 
     if (carryFlag) {
         res--;
@@ -514,7 +509,7 @@ void Z80::or_(uint8_t oper8) {
 // Los flags SIGN y ZERO se calculan a partir del resultado
 // Los flags 3 y 5 se copian desde el operando (sigh!)
 void Z80::cp(uint8_t oper8) {
-    int16_t res = regA - oper8;
+    auto res = static_cast<int16_t>(regA - oper8);
 
     carryFlag = res < 0;
     res &= 0xff;
@@ -535,7 +530,7 @@ void Z80::cp(uint8_t oper8) {
 }
 
 // DAA
-void Z80::daa(void) {
+void Z80::daa() {
     uint8_t suma = 0;
     bool carry = carryFlag;
 
@@ -565,7 +560,7 @@ void Z80::daa(void) {
 }
 
 // POP
-uint16_t Z80::pop(void) {
+uint16_t Z80::pop() {
     uint16_t word = Z80opsImpl->peek16(REG_SP);
     REG_SP = REG_SP + 2;
     return word;
@@ -578,7 +573,7 @@ void Z80::push(uint16_t word) {
 }
 
 // LDI
-void Z80::ldi(void) {
+void Z80::ldi() {
     uint8_t work8 = Z80opsImpl->peek8(REG_HL);
     Z80opsImpl->poke8(REG_DE, work8);
     Z80opsImpl->addressOnBus(REG_DE, 2);
@@ -600,7 +595,7 @@ void Z80::ldi(void) {
 }
 
 // LDD
-void Z80::ldd(void) {
+void Z80::ldd() {
     uint8_t work8 = Z80opsImpl->peek8(REG_HL);
     Z80opsImpl->poke8(REG_DE, work8);
     Z80opsImpl->addressOnBus(REG_DE, 2);
@@ -622,7 +617,7 @@ void Z80::ldd(void) {
 }
 
 // CPI
-void Z80::cpi(void) {
+void Z80::cpi() {
     uint8_t memHL = Z80opsImpl->peek8(REG_HL);
     bool carry = carryFlag; // lo guardo porque cp lo toca
     cp(memHL);
@@ -646,7 +641,7 @@ void Z80::cpi(void) {
 }
 
 // CPD
-void Z80::cpd(void) {
+void Z80::cpd() {
     uint8_t memHL = Z80opsImpl->peek8(REG_HL);
     bool carry = carryFlag; // lo guardo porque cp lo toca
     cp(memHL);
@@ -670,7 +665,7 @@ void Z80::cpd(void) {
 }
 
 // INI
-void Z80::ini(void) {
+void Z80::ini() {
     REG_WZ = REG_BC;
     Z80opsImpl->addressOnBus(getPairIR().word, 1);
     uint8_t work8 = Z80opsImpl->inPort(REG_WZ++);
@@ -701,7 +696,7 @@ void Z80::ini(void) {
 }
 
 // IND
-void Z80::ind(void) {
+void Z80::ind() {
     REG_WZ = REG_BC;
     Z80opsImpl->addressOnBus(getPairIR().word, 1);
     uint8_t work8 = Z80opsImpl->inPort(REG_WZ--);
@@ -732,7 +727,7 @@ void Z80::ind(void) {
 }
 
 // OUTI
-void Z80::outi(void) {
+void Z80::outi() {
 
     Z80opsImpl->addressOnBus(getPairIR().word, 1);
 
@@ -764,7 +759,7 @@ void Z80::outi(void) {
 }
 
 // OUTD
-void Z80::outd(void) {
+void Z80::outd() {
 
     Z80opsImpl->addressOnBus(getPairIR().word, 1);
 
@@ -839,7 +834,7 @@ void Z80::bitTest(uint8_t mask, uint8_t reg) {
  *      M4: 3 T-Estados -> leer byte bajo del vector de INT
  *      M5: 3 T-Estados -> leer byte alto y saltar a la rutina de INT
  */
-void Z80::interrupt(void) {
+void Z80::interrupt() {
     // Si estaba en un HALT esperando una INT, lo saca de la espera
     halted = false;
 
@@ -862,7 +857,7 @@ void Z80::interrupt(void) {
  * M2: 3 T-Estados -> escribe byte alto de PC y decSP
  * M3: 3 T-Estados -> escribe byte bajo de PC y PC=0x0066
  */
-void Z80::nmi(void) {
+void Z80::nmi() {
     halted = false;
     // Esta lectura consigue dos cosas:
     //      1.- La lectura del opcode del M1 que se descarta
@@ -875,14 +870,14 @@ void Z80::nmi(void) {
     REG_PC = REG_WZ = 0x0066;
 }
 
-void Z80::execute(void) {
+void Z80::execute() {
 
-    opCode = Z80opsImpl->fetchOpcode(REG_PC);
+    m_opCode = Z80opsImpl->fetchOpcode(REG_PC);
     regR++;
 
 #ifdef WITH_BREAKPOINT_SUPPORT
     if (breakpointEnabled && prefixOpcode == 0) {
-        opCode = Z80opsImpl->breakpoint(REG_PC, opCode);
+        m_opCode = Z80opsImpl->breakpoint(REG_PC, m_opCode);
     }
 #endif
     if (!halted) {
@@ -894,19 +889,19 @@ void Z80::execute(void) {
         switch (prefixOpcode) {
             case 0x00:
                 flagQ = pendingEI = false;
-                decodeOpcode(opCode);
+                decodeOpcode(m_opCode);
                 break;
             case 0xDD:
                 prefixOpcode = 0;
-                decodeDDFD(opCode, regIX);
+                decodeDDFD(m_opCode, regIX);
                 break;
             case 0xED:
                 prefixOpcode = 0;
-                decodeED(opCode);
+                decodeED(m_opCode);
                 break;
             case 0xFD:
                 prefixOpcode = 0;
-                decodeDDFD(opCode, regIY);
+                decodeDDFD(m_opCode, regIY);
                 break;
             default:
                 return;
@@ -1054,7 +1049,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         case 0x10:
         { /* DJNZ e */
             Z80opsImpl->addressOnBus(getPairIR().word, 1);
-            int8_t offset = Z80opsImpl->peek8(REG_PC);
+            auto offset = static_cast<int8_t>(Z80opsImpl->peek8(REG_PC));
             if (--REG_B != 0) {
                 Z80opsImpl->addressOnBus(REG_PC, 5);
                 REG_PC = REG_WZ = REG_PC + offset + 1;
@@ -1113,7 +1108,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         }
         case 0x18:
         { /* JR e */
-            int8_t offset = Z80opsImpl->peek8(REG_PC);
+            auto offset = static_cast<int8_t>(Z80opsImpl->peek8(REG_PC));
             Z80opsImpl->addressOnBus(REG_PC, 5);
             REG_PC = REG_WZ = REG_PC + offset + 1;
             break;
@@ -1166,7 +1161,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         }
         case 0x20:
         { /* JR NZ,e */
-            int8_t offset = Z80opsImpl->peek8(REG_PC);
+            auto offset = static_cast<int8_t>(Z80opsImpl->peek8(REG_PC));
             if ((sz5h3pnFlags & ZERO_MASK) == 0) {
                 Z80opsImpl->addressOnBus(REG_PC, 5);
                 REG_PC += offset;
@@ -1218,7 +1213,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         }
         case 0x28:
         { /* JR Z,e */
-            int8_t offset = Z80opsImpl->peek8(REG_PC);
+            auto offset = static_cast<int8_t>(Z80opsImpl->peek8(REG_PC));
             if ((sz5h3pnFlags & ZERO_MASK) != 0) {
                 Z80opsImpl->addressOnBus(REG_PC, 5);
                 REG_PC += offset;
@@ -1273,7 +1268,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         }
         case 0x30:
         { /* JR NC,e */
-            int8_t offset = Z80opsImpl->peek8(REG_PC);
+            auto offset = static_cast<int8_t>(Z80opsImpl->peek8(REG_PC));
             if (!carryFlag) {
                 Z80opsImpl->addressOnBus(REG_PC, 5);
                 REG_PC += offset;
@@ -1334,7 +1329,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
         }
         case 0x38:
         { /* JR C,e */
-            int8_t offset = Z80opsImpl->peek8(REG_PC);
+            auto offset = static_cast<int8_t>(Z80opsImpl->peek8(REG_PC));
             if (carryFlag) {
                 Z80opsImpl->addressOnBus(REG_PC, 5);
                 REG_PC += offset;
@@ -2469,7 +2464,7 @@ void Z80::decodeOpcode(uint8_t opCode) {
 
 //Subconjunto de instrucciones 0xCB
 
-void Z80::decodeCB(void) {
+void Z80::decodeCB() {
     uint8_t opCode = Z80opsImpl->fetchOpcode(REG_PC++);
     regR++;
 

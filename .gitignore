@@ -1,3 +1,5 @@
-/build/
-example/z80sim
+build*/
+cmake-build*/
 .vscode/
+.idea/
+example/z80sim

@@ -1,13 +1,13 @@
 #ifndef Z80OPERATIONS_H
 #define Z80OPERATIONS_H
 
-#include <stdint.h>
+#include <cstdint>
 
 class Z80operations {
 public:
-    Z80operations(void) {};
+    Z80operations() = default;
 
-    virtual ~Z80operations() {};
+    virtual ~Z80operations() = default;
 
     /* Read opcode from RAM */
     virtual uint8_t fetchOpcode(uint16_t address) = 0;
@@ -17,7 +17,7 @@ public:
     virtual void poke8(uint16_t address, uint8_t value) = 0;
 
     /* Read/Write word from/to RAM */
-   virtual uint16_t peek16(uint16_t adddress) = 0;
+   virtual uint16_t peek16(uint16_t address) = 0;
    virtual void poke16(uint16_t address, RegisterPair word) = 0;
 
     /* In/Out byte from/to IO Bus */
@@ -31,7 +31,7 @@ public:
     virtual void interruptHandlingTime(int32_t wstates) = 0;
 
     /* Callback to know when the INT signal is active */
-    virtual bool isActiveINT(void) = 0;
+    virtual bool isActiveINT() = 0;
 
 #ifdef WITH_BREAKPOINT_SUPPORT
     /* Callback for notify at PC address */

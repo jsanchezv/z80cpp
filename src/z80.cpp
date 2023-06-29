@@ -680,7 +680,7 @@ void Z80::ini() {
     }
 
     carryFlag = false;
-    uint16_t tmp = work8 + REG_C + 1;
+    uint16_t tmp = work8 + ((REG_C + 1) & 0xff);
     if (tmp > 0xff) {
         sz5h3pnFlags |= HALFCARRY_MASK;
         carryFlag = true;
@@ -711,7 +711,7 @@ void Z80::ind() {
     }
 
     carryFlag = false;
-    uint16_t tmp = work8 + (REG_C - 1);
+    uint16_t tmp = work8 + ((REG_C - 1) & 0xff);
     if (tmp > 0xff) {
         sz5h3pnFlags |= HALFCARRY_MASK;
         carryFlag = true;
@@ -5310,10 +5310,8 @@ void Z80::decodeED(uint8_t opCode) {
                 REG_PC = REG_PC - 2;
                 REG_WZ = REG_PC + 1;
                 Z80opsImpl->addressOnBus(REG_DE - 1, 5);
-                if (ffIFF1 && !pendingEI && Z80opsImpl->isActiveINT()) {
-                    sz5h3pnFlags &= ~FLAG_53_MASK;
-                    sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
-                }
+                sz5h3pnFlags &= ~FLAG_53_MASK;
+                sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
             }
             break;
         }
@@ -5325,10 +5323,8 @@ void Z80::decodeED(uint8_t opCode) {
                 REG_PC = REG_PC - 2;
                 REG_WZ = REG_PC + 1;
                 Z80opsImpl->addressOnBus(REG_HL - 1, 5);
-                if (ffIFF1 && !pendingEI && Z80opsImpl->isActiveINT()) {
-                    sz5h3pnFlags &= ~FLAG_53_MASK;
-                    sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
-                }
+                sz5h3pnFlags &= ~FLAG_53_MASK;
+                sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
             }
             break;
         }
@@ -5338,17 +5334,7 @@ void Z80::decodeED(uint8_t opCode) {
             if (REG_B != 0) {
                 REG_PC = REG_PC - 2;
                 Z80opsImpl->addressOnBus(REG_HL - 1, 5);
-                if (ffIFF1 && !pendingEI && Z80opsImpl->isActiveINT()) {
-                    sz5h3pnFlags &= ~FLAG_53_MASK;
-                    sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
-                    if (carryFlag) {
-                        uint8_t cpyB = REG_B;
-                        sz5h3pnFlags &= ~(HALFCARRY_MASK | PARITY_MASK);
-                        cpyB += (sz5h3pnFlags & ADDSUB_MASK) != 0 ? 0 : 1;
-                        sz5h3pnFlags |= ((cpyB ^ REG_B) & HALFCARRY_MASK);
-                        sz5h3pnFlags |= (sz53pn_addTable[(cpyB & 0x07)] & PARITY_MASK);
-                    }
-                }
+                adjustINxROUTxRFlags();
             }
             break;
         }
@@ -5358,17 +5344,7 @@ void Z80::decodeED(uint8_t opCode) {
             if (REG_B != 0) {
                 REG_PC = REG_PC - 2;
                 Z80opsImpl->addressOnBus(REG_BC, 5);
-                if (ffIFF1 && !pendingEI && Z80opsImpl->isActiveINT()) {
-                    sz5h3pnFlags &= ~FLAG_53_MASK;
-                    sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
-                    if (carryFlag) {
-                        uint8_t cpyB = REG_B;
-                        sz5h3pnFlags &= ~(HALFCARRY_MASK | PARITY_MASK);
-                        cpyB += (sz5h3pnFlags & ADDSUB_MASK) != 0 ? -1 : 1;
-                        sz5h3pnFlags |= ((cpyB ^ REG_B) & HALFCARRY_MASK);
-                        sz5h3pnFlags |= (sz53pn_addTable[(cpyB & 0x07)] & PARITY_MASK);
-                    }
-                }
+                adjustINxROUTxRFlags();
             }
             break;
         }
@@ -5379,10 +5355,8 @@ void Z80::decodeED(uint8_t opCode) {
                 REG_PC = REG_PC - 2;
                 REG_WZ = REG_PC + 1;
                 Z80opsImpl->addressOnBus(REG_DE + 1, 5);
-                if (ffIFF1 && !pendingEI && Z80opsImpl->isActiveINT()) {
-                    sz5h3pnFlags &= ~FLAG_53_MASK;
-                    sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
-                }
+                sz5h3pnFlags &= ~FLAG_53_MASK;
+                sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
             }
             break;
         }
@@ -5394,10 +5368,8 @@ void Z80::decodeED(uint8_t opCode) {
                 REG_PC = REG_PC - 2;
                 REG_WZ = REG_PC + 1;
                 Z80opsImpl->addressOnBus(REG_HL + 1, 5);
-                if (ffIFF1 && !pendingEI && Z80opsImpl->isActiveINT()) {
-                    sz5h3pnFlags &= ~FLAG_53_MASK;
-                    sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
-                }
+                sz5h3pnFlags &= ~FLAG_53_MASK;
+                sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
             }
             break;
         }
@@ -5407,17 +5379,7 @@ void Z80::decodeED(uint8_t opCode) {
             if (REG_B != 0) {
                 REG_PC = REG_PC - 2;
                 Z80opsImpl->addressOnBus(REG_HL + 1, 5);
-                if (ffIFF1 && !pendingEI && Z80opsImpl->isActiveINT()) {
-                    sz5h3pnFlags &= ~FLAG_53_MASK;
-                    sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
-                    if (carryFlag) {
-                        uint8_t cpyB = REG_B;
-                        sz5h3pnFlags &= ~(HALFCARRY_MASK | PARITY_MASK);
-                        cpyB += (sz5h3pnFlags & ADDSUB_MASK) != 0 ? -1 : 1;
-                        sz5h3pnFlags |= ((cpyB ^ REG_B) & HALFCARRY_MASK);
-                        sz5h3pnFlags |= (sz53pn_addTable[(cpyB & 0x07)] & PARITY_MASK);
-                    }
-                }
+                adjustINxROUTxRFlags();
             }
             break;
         }
@@ -5427,17 +5389,7 @@ void Z80::decodeED(uint8_t opCode) {
             if (REG_B != 0) {
                 REG_PC = REG_PC - 2;
                 Z80opsImpl->addressOnBus(REG_BC, 5);
-                if (ffIFF1 && !pendingEI && Z80opsImpl->isActiveINT()) {
-                    sz5h3pnFlags &= ~FLAG_53_MASK;
-                    sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
-                    if (carryFlag) {
-                        uint8_t cpyB = REG_B;
-                        sz5h3pnFlags &= ~(HALFCARRY_MASK | PARITY_MASK);
-                        cpyB += (sz5h3pnFlags & ADDSUB_MASK) != 0 ? -1 : 1;
-                        sz5h3pnFlags |= ((cpyB ^ REG_B) & HALFCARRY_MASK);
-                        sz5h3pnFlags |= (sz53pn_addTable[(cpyB & 0x07)] & PARITY_MASK);
-                    }
-                }
+                adjustINxROUTxRFlags();
             }
             break;
         }
@@ -5484,4 +5436,29 @@ void Z80::copyToRegister(uint8_t opCode, uint8_t value)
         default:
             break;
     }
+}
+
+void Z80::adjustINxROUTxRFlags(void)
+{
+    sz5h3pnFlags &= ~FLAG_53_MASK;
+    sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);
+
+    uint8_t pf = sz5h3pnFlags & PARITY_MASK;
+    if (carryFlag)
+    {
+        int8_t addsub = 1 - (sz5h3pnFlags & ADDSUB_MASK);
+        pf ^= sz53pn_addTable[(REG_B + addsub) & 0x07] ^ PARITY_MASK;
+        if ((REG_B & 0x0F) == (addsub != 1 ? 0x00 : 0x0F))
+            sz5h3pnFlags |= HALFCARRY_MASK;
+        else
+            sz5h3pnFlags &= ~HALFCARRY_MASK;
+    } else {
+        pf ^= sz53pn_addTable[REG_B & 0x07] ^ PARITY_MASK;
+        sz5h3pnFlags &= ~HALFCARRY_MASK;
+    }
+
+    if (pf & PARITY_MASK)
+        sz5h3pnFlags |= PARITY_MASK;
+    else
+        sz5h3pnFlags &= ~PARITY_MASK;
 }

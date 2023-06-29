@@ -208,6 +208,7 @@ private:
     bool breakpointEnabled {false};
 #endif
     void copyToRegister(uint8_t opCode, uint8_t value);
+    void adjustINxROUTxRFlags(void);
 
 public:
     // Constructor de la clase

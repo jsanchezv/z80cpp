@@ -5333,6 +5333,7 @@ void Z80::decodeED(uint8_t opCode) {
             ini();
             if (REG_B != 0) {
                 REG_PC = REG_PC - 2;
+                REG_WZ = REG_PC + 1;
                 Z80opsImpl->addressOnBus(REG_HL - 1, 5);
                 adjustINxROUTxRFlags();
             }
@@ -5343,6 +5344,7 @@ void Z80::decodeED(uint8_t opCode) {
             outi();
             if (REG_B != 0) {
                 REG_PC = REG_PC - 2;
+                REG_WZ = REG_PC + 1;
                 Z80opsImpl->addressOnBus(REG_BC, 5);
                 adjustINxROUTxRFlags();
             }
@@ -5378,6 +5380,7 @@ void Z80::decodeED(uint8_t opCode) {
             ind();
             if (REG_B != 0) {
                 REG_PC = REG_PC - 2;
+                REG_WZ = REG_PC + 1;
                 Z80opsImpl->addressOnBus(REG_HL + 1, 5);
                 adjustINxROUTxRFlags();
             }
@@ -5388,6 +5391,7 @@ void Z80::decodeED(uint8_t opCode) {
             outd();
             if (REG_B != 0) {
                 REG_PC = REG_PC - 2;
+                REG_WZ = REG_PC + 1;
                 Z80opsImpl->addressOnBus(REG_BC, 5);
                 adjustINxROUTxRFlags();
             }

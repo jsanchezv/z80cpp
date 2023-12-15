@@ -855,7 +855,7 @@ void Z80::interrupt() {
 /* Desglose de ciclos de máquina y T-Estados
  * M1: 5 T-Estados -> extraer opcode (pá ná, es tontería) y decSP
  * M2: 3 T-Estados -> escribe byte alto de PC y decSP
- * M3: 3 T-Estados -> escribe byte bajo de PC y PC=0x0066
+ * M3: 3 T-Estados -> escrib e byte bajo de PC y PC=0x0066
  */
 void Z80::nmi() {
     halted = false;
@@ -5442,7 +5442,7 @@ void Z80::copyToRegister(uint8_t opCode, uint8_t value)
     }
 }
 
-void Z80::adjustINxROUTxRFlags(void)
+void Z80::adjustINxROUTxRFlags()
 {
     sz5h3pnFlags &= ~FLAG_53_MASK;
     sz5h3pnFlags |= (REG_PCh & FLAG_53_MASK);

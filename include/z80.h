@@ -208,11 +208,11 @@ private:
     bool breakpointEnabled {false};
 #endif
     void copyToRegister(uint8_t opCode, uint8_t value);
-    void adjustINxROUTxRFlags(void);
+    void adjustINxROUTxRFlags();
 
 public:
     // Constructor de la clase
-    Z80(Z80operations *ops);
+    explicit Z80(Z80operations *ops);
     ~Z80();
 
     // Acceso a registros de 8 bits

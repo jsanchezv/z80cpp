@@ -2,12 +2,12 @@
 
 using namespace std;
 
-Z80sim::Z80sim(void) : cpu(this)
+Z80sim::Z80sim() : cpu(this)
 {
 
 }
 
-Z80sim::~Z80sim() {}
+Z80sim::~Z80sim() = default;
 
 uint8_t Z80sim::fetchOpcode(uint16_t address) {
     // 3 clocks to fetch opcode from RAM and 1 execution clock
@@ -68,7 +68,7 @@ void Z80sim::interruptHandlingTime(int32_t tstates) {
     this->tstates += tstates;
 }
 
-bool Z80sim::isActiveINT(void) {
+bool Z80sim::isActiveINT() {
 	// Put here the needed logic to trigger an INT
     return false;
 }
@@ -88,7 +88,7 @@ uint8_t Z80sim::breakpoint(uint16_t address, uint8_t opcode) {
     switch (cpu.getRegC()) {
         case 0: // BDOS 0 System Reset
         {
-            cout << "Z80 reset after " << tstates << " t-states" << endl;
+            cout << endl << "Z80 reset after " << tstates << " t-states" << endl;
             finish = true;
             break;
         }
@@ -147,7 +147,7 @@ void Z80sim::runTest(std::ifstream* f) {
     }
 }
 
-int main(void) {
+int main() {
 
     Z80sim sim = Z80sim();
 

@@ -160,7 +160,7 @@ void Z80::reset() {
     halted = false;
     setIM(IntMode::IM0);
     lastFlagQ = false;
-    prefixOpcode = 0x00;
+    // prefixOpcode = 0x00;
 }
 
 // Rota a la izquierda el valor del argumento
@@ -886,30 +886,32 @@ void Z80::execute() {
         // El prefijo 0xCB no cuenta para esta guerra.
         // En CBxx todas las xx producen un código válido
         // de instrucción, incluyendo CBCB.
-        switch (prefixOpcode) {
-            case 0x00:
-                flagQ = pendingEI = false;
-                decodeOpcode(m_opCode);
-                break;
-            case 0xDD:
-                prefixOpcode = 0;
-                decodeDDFD(m_opCode, regIX);
-                break;
-            case 0xED:
-                prefixOpcode = 0;
-                decodeED(m_opCode);
-                break;
-            case 0xFD:
-                prefixOpcode = 0;
-                decodeDDFD(m_opCode, regIY);
-                break;
-            default:
-                return;
-        }
+        // switch (prefixOpcode) {
+        //     case 0x00:
+        //         flagQ = pendingEI = false;
+        //         decodeOpcode(m_opCode);
+        //         break;
+        //     case 0xDD:
+        //         prefixOpcode = 0;
+        //         decodeDDFD(m_opCode, regIX);
+        //         break;
+        //     case 0xED:
+        //         prefixOpcode = 0;
+        //         decodeED(m_opCode);
+        //         break;
+        //     case 0xFD:
+        //         prefixOpcode = 0;
+        //         decodeDDFD(m_opCode, regIY);
+        //         break;
+        //     default:
+        //         return;
+        // }
 
-        if (prefixOpcode != 0)
-            return;
+        // if (prefixOpcode != 0)
+        //     return;
 
+        flagQ = pendingEI = false;
+        decodeOpcode(m_opCode);
         lastFlagQ = flagQ;
 
 #ifdef WITH_EXEC_DONE
@@ -2252,9 +2254,10 @@ void Z80::decodeOpcode(uint8_t opCode) {
         }
         case 0xDD:
         { /* Subconjunto de instrucciones */
-            opCode = Z80opsImpl->fetchOpcode(REG_PC++);
-            regR++;
-            decodeDDFD(opCode, regIX);
+            // opCode = Z80opsImpl->fetchOpcode(REG_PC++);
+            // regR++;
+            // decodeDDFD(opCode, regIX);
+            decodeSubSet(0xDD);
             break;
         }
         case 0xDE:
@@ -2358,9 +2361,10 @@ void Z80::decodeOpcode(uint8_t opCode) {
             REG_PC = REG_PC + 2;
             break;
         case 0xED: /*Subconjunto de instrucciones*/
-            opCode = Z80opsImpl->fetchOpcode(REG_PC++);
-            regR++;
-            decodeED(opCode);
+            // opCode = Z80opsImpl->fetchOpcode(REG_PC++);
+            // regR++;
+            // decodeED(opCode);
+            decodeSubSet(0xED);
             break;
         case 0xEE: /* XOR n */
             xor_(Z80opsImpl->peek8(REG_PC));
@@ -2447,9 +2451,10 @@ void Z80::decodeOpcode(uint8_t opCode) {
             REG_PC = REG_PC + 2;
             break;
         case 0xFD: /* Subconjunto de instrucciones */
-            opCode = Z80opsImpl->fetchOpcode(REG_PC++);
-            regR++;
-            decodeDDFD(opCode, regIY);
+            // opCode = Z80opsImpl->fetchOpcode(REG_PC++);
+            // regR++;
+            // decodeDDFD(opCode, regIY);
+            decodeSubSet(0xFD);
             break;
         case 0xFE: /* CP n */
             cp(Z80opsImpl->peek8(REG_PC));
@@ -2463,6 +2468,25 @@ void Z80::decodeOpcode(uint8_t opCode) {
 }
 
 //Subconjunto de instrucciones 0xCB
+void Z80::decodeSubSet(uint8_t prefix) {
+    uint8_t opCode = prefix;
+    do {
+        prefix = opCode;
+        opCode = Z80opsImpl->fetchOpcode(REG_PC++);
+        regR++;
+    } while (opCode == 0xDD || opCode == 0xED || opCode == 0xFD);
+
+    switch (prefix) {
+        case 0xDD: // 0xDD
+            decodeDDFD(opCode, regIX);
+            break;
+        case 0xED: // 0xED
+            decodeED(opCode);
+            break;
+        case 0xFD: // 0xFD
+            decodeDDFD(opCode, regIY);
+    }
+}
 
 void Z80::decodeCB() {
     uint8_t opCode = Z80opsImpl->fetchOpcode(REG_PC++);
@@ -4348,9 +4372,9 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& regIXY) {
             decodeDDFDCB(opCode, REG_WZ);
             break;
         }
-        case 0xDD:
-            prefixOpcode = 0xDD;
-            break;
+        // case 0xDD:
+        //     prefixOpcode = 0xDD;
+        //     break;
         case 0xE1:
         { /* POP IX */
             regIXY.word = pop();
@@ -4381,22 +4405,22 @@ void Z80::decodeDDFD(uint8_t opCode, RegisterPair& regIXY) {
             REG_PC = regIXY.word;
             break;
         }
-        case 0xED:
-        {
-            prefixOpcode = 0xED;
-            break;
-        }
+        // case 0xED:
+        // {
+        //     prefixOpcode = 0xED;
+        //     break;
+        // }
         case 0xF9:
         { /* LD SP,IX */
             Z80opsImpl->addressOnBus(getPairIR().word, 2);
             REG_SP = regIXY.word;
             break;
         }
-        case 0xFD:
-        {
-            prefixOpcode = 0xFD;
-            break;
-        }
+        // case 0xFD:
+        // {
+        //     prefixOpcode = 0xFD;
+        //     break;
+        // }
         default:
         {
             // Detrás de un DD/FD o varios en secuencia venía un código
@@ -5397,15 +5421,15 @@ void Z80::decodeED(uint8_t opCode) {
             }
             break;
         }
-        case 0xDD:
-            prefixOpcode = 0xDD;
-            break;
-        case 0xED:
-            prefixOpcode = 0xED;
-            break;
-        case 0xFD:
-            prefixOpcode = 0xFD;
-            break;
+        // case 0xDD:
+        //     prefixOpcode = 0xDD;
+        //     break;
+        // case 0xED:
+        //     prefixOpcode = 0xED;
+        //     break;
+        // case 0xFD:
+        //     prefixOpcode = 0xFD;
+        //     break;
         default:
         {
             break;

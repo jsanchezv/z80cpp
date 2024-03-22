@@ -68,10 +68,10 @@ void Z80sim::interruptHandlingTime(int32_t tstates) {
     this->tstates += tstates;
 }
 
-bool Z80sim::isActiveINT(void) {
-	// Put here the needed logic to trigger an INT
-    return false;
-}
+// bool Z80sim::isActiveINT(void) {
+// 	// Put here the needed logic to trigger an INT
+//     return false;
+// }
 
 #ifdef WITH_EXEC_DONE
 void Z80sim::execDone(void) {}

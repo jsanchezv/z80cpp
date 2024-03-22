@@ -90,7 +90,7 @@ private:
     // El prefijo 0xCB queda al margen porque, detrás de 0xCB, siempre
     // viene un código de instrucción válido, tanto si delante va un
     // 0xDD o 0xFD como si no.
-    uint8_t prefixOpcode = { 0x00 };
+    //uint8_t prefixOpcode = { 0x00 };
     // Subsistema de notificaciones
     bool execDone;
     // Posiciones de los flags
@@ -505,6 +505,9 @@ private:
 
     // Decode main opcodes
     void decodeOpcode(uint8_t opCode);
+
+        // Decode Sub Set opcodes
+    void decodeSubSet(uint8_t prefix);
 
     // Subconjunto de instrucciones 0xCB
     // decode CBXX opcodes

@@ -29,7 +29,7 @@ public:
     void outPort(uint16_t port, uint8_t value) override;
     void addressOnBus(uint16_t address, int32_t tstates) override;
     void interruptHandlingTime(int32_t tstates) override;
-    bool isActiveINT(void) override;
+    bool isActiveINT(void) override { return false; }
 
 #ifdef WITH_BREAKPOINT_SUPPORT
     uint8_t breakpoint(uint16_t address, uint8_t opcode) override;
